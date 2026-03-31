@@ -52,9 +52,6 @@
             color: white;
             font-size: 80px;
             animation: fadeIn 0.8s ease-out;
-            background-image: url('https://images.unsplash.com/photo-150784272343-583f20270319?w=800&h=400&fit=crop');
-            background-size: cover;
-            background-position: center;
             position: relative;
         }
 
@@ -240,7 +237,7 @@
         /* PDF Grid */
         .pdf-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 25px;
             margin-bottom: 30px;
             animation: fadeIn 0.6s ease-out;
@@ -262,41 +259,16 @@
             box-shadow: 0 15px 40px rgba(102, 126, 234, 0.25);
         }
 
-        .pdf-image {
+        .pdf-icon {
             width: 100%;
-            height: 180px;
+            height: 150px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 60px;
             color: white;
-            overflow: hidden;
             position: relative;
-        }
-
-        .pdf-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .pdf-image-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .pdf-card:hover .pdf-image-overlay {
-            opacity: 1;
         }
 
         .pdf-content {
@@ -336,14 +308,14 @@
         /* Engagement Section */
         .engagement {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             margin-bottom: 15px;
         }
 
         .engagement-item {
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             border-radius: 6px;
             background: var(--light);
             transition: all 0.3s;
@@ -358,7 +330,7 @@
         .engagement-number {
             font-weight: bold;
             color: var(--primary);
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .engagement-label {
@@ -421,17 +393,18 @@
             padding: 12px;
             border-radius: 6px;
             margin-bottom: 10px;
-            max-height: 150px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
         .comment {
             background: white;
-            padding: 8px;
+            padding: 10px;
             border-radius: 4px;
             margin-bottom: 8px;
             font-size: 12px;
             animation: slideIn 0.3s ease-out;
+            border-left: 3px solid var(--primary);
         }
 
         .comment-user {
@@ -639,7 +612,7 @@
             }
 
             .pdf-grid {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
                 gap: 15px;
             }
 
@@ -656,7 +629,7 @@
             }
 
             .engagement {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
 
             .stats-bar {
@@ -776,24 +749,25 @@
         let pdfStats = {};
         let onlineUsers = 0;
 
-        // Simulated user avatars and names
         const userAvatars = ['👨‍🎓', '👩‍🎓', '👨‍💼', '👩‍💼', '👨‍🏫', '👩‍🏫', '🧑‍💻', '👨‍🔬'];
         const userNames = ['Alex', 'Sarah', 'Mike', 'Emma', 'John', 'Lisa', 'David', 'Nina', 'Chris', 'Maya'];
 
-        // PDF cover images (various educational images)
-        const pdfImages = [
-            'https://images.unsplash.com/photo-1507842721343-583f20270319?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1451127580459-f4eef28ac821?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1548565398-07da56513002?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1543002588-d83cedbc4d2e?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=300&fit=crop',
-        ];
+        // Load stats from localStorage
+        function loadStatsFromStorage() {
+            const stored = localStorage.getItem('pdfStats');
+            if (stored) {
+                pdfStats = JSON.parse(stored);
+            }
+        }
+
+        // Save stats to localStorage
+        function saveStatsToStorage() {
+            localStorage.setItem('pdfStats', JSON.stringify(pdfStats));
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            loadStatsFromStorage();
             loadPDFs();
             simulateOnlineUsers();
             updateOnlineCount();
@@ -843,17 +817,19 @@
                     throw new Error(`No PDFs found in the "${PDFS_FOLDER}" folder`);
                 }
 
-                // Initialize stats for each PDF
+                // Initialize stats for each PDF if not already exists
                 allPDFs.forEach(pdf => {
                     if (!pdfStats[pdf.name]) {
                         pdfStats[pdf.name] = {
-                            downloads: Math.floor(Math.random() * 500),
-                            likes: Math.floor(Math.random() * 200),
+                            downloads: 0,
+                            likes: 0,
                             comments: [],
                             liked: false
                         };
                     }
                 });
+
+                saveStatsToStorage();
 
                 // Filter by search term
                 let filteredPDFs = allPDFs;
@@ -894,6 +870,8 @@
                 sortedPdfs.sort((a, b) => pdfStats[b.name].likes - pdfStats[a.name].likes);
             } else if (sortBy === 'comments') {
                 sortedPdfs.sort((a, b) => pdfStats[b.name].comments.length - pdfStats[a.name].comments.length);
+            } else {
+                sortedPdfs.sort((a, b) => a.name.localeCompare(b.name));
             }
 
             sortedPdfs.forEach((pdf, index) => {
@@ -909,9 +887,8 @@
             const sizeMB = (pdf.size / 1024 / 1024).toFixed(2);
             const downloadUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${PDFS_FOLDER}/${pdf.name}`;
             const stats = pdfStats[pdf.name];
-            const imageUrl = pdfImages[index % pdfImages.length];
 
-            const commentsHtml = stats.comments.slice(-2).map(comment => `
+            const commentsHtml = stats.comments.slice(-3).map(comment => `
                 <div class="comment">
                     <div class="comment-user">${comment.user}</div>
                     <div class="comment-text">${comment.text}</div>
@@ -919,18 +896,15 @@
             `).join('');
 
             card.innerHTML = `
-                <div class="pdf-image">
-                    <img src="${imageUrl}" alt="${pdf.name}" onerror="this.style.display='none'">
-                    <div class="pdf-image-overlay">
-                        <i class="fas fa-file-pdf" style="font-size: 40px; color: white;"></i>
-                    </div>
+                <div class="pdf-icon">
+                    <i class="fas fa-file-pdf"></i>
                 </div>
                 <div class="pdf-content">
                     <div class="pdf-name" title="${pdf.name}">${pdf.name}</div>
                     
                     <div class="pdf-meta">
                         <span class="pdf-size">${sizeMB > 0 ? sizeMB + ' MB' : (pdf.size) + ' B'}</span>
-                        <span>📅 ${new Date().toLocaleDateString()}</span>
+                        <span>📅 Today</span>
                     </div>
 
                     <div class="engagement">
@@ -945,10 +919,6 @@
                         <div class="engagement-item">
                             <div class="engagement-number">${stats.comments.length}</div>
                             <div class="engagement-label">💬 Comments</div>
-                        </div>
-                        <div class="engagement-item">
-                            <div class="engagement-number">${Math.floor(Math.random() * 50) + 5}</div>
-                            <div class="engagement-label">👁️ Views</div>
                         </div>
                     </div>
 
@@ -985,10 +955,11 @@
             a.click();
             document.body.removeChild(a);
 
-            // Simulate download count increase
+            // Increment real download count
             pdfStats[filename].downloads += 1;
+            saveStatsToStorage();
             updateStats();
-            loadPDFs();
+            displayPDFs(allPDFs);
         }
 
         function toggleLike(filename, button) {
@@ -1001,30 +972,41 @@
                 pdfStats[filename].likes += 1;
                 button.classList.add('liked');
             }
+            saveStatsToStorage();
             updateStats();
+            displayPDFs(allPDFs);
         }
 
         function handleCommentKeypress(event, filename) {
             if (event.key === 'Enter') {
-                addComment(filename);
+                const input = event.target;
+                const commentText = input.value.trim();
+                if (commentText) {
+                    addCommentText(filename, commentText);
+                }
             }
         }
 
         function addComment(filename) {
-            const input = event.target.previousElementSibling;
+            const section = event.target.parentElement;
+            const input = section.querySelector('.comment-input');
             const commentText = input.value.trim();
 
             if (!commentText) return;
 
+            addCommentText(filename, commentText);
+        }
+
+        function addCommentText(filename, commentText) {
             const randomUser = userNames[Math.floor(Math.random() * userNames.length)];
             pdfStats[filename].comments.push({
                 user: randomUser,
                 text: commentText
             });
 
-            input.value = '';
+            saveStatsToStorage();
             updateStats();
-            loadPDFs();
+            displayPDFs(allPDFs);
         }
 
         function simulateOnlineUsers() {
