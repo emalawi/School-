@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Search & Download</title>
+    <title>PDF Library - Search & Download</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -11,237 +12,802 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #4CAF50;
+            --danger: #f44336;
+            --warning: #ff9800;
+            --light: #f8f9fa;
+            --dark: #333;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
         }
 
-        .container {
+        /* Header */
+        .header {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            max-width: 800px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            animation: slideDown 0.6s ease-out;
+        }
+
+        .header-banner {
             width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 80px;
+            animation: fadeIn 0.8s ease-out;
+            background-image: url('https://images.unsplash.com/photo-150784272343-583f20270319?w=800&h=400&fit=crop');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .header-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(102, 126, 234, 0.7);
+            border-radius: 10px;
+        }
+
+        .header-banner-content {
+            position: relative;
+            z-index: 2;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 10px;
-            text-align: center;
+            color: var(--dark);
+            margin: 20px 0 10px;
+            font-size: 2.5em;
+            animation: slideUp 0.6s ease-out 0.2s both;
         }
 
         .subtitle {
             color: #666;
-            text-align: center;
+            font-size: 16px;
+            margin-bottom: 20px;
+            animation: slideUp 0.6s ease-out 0.4s both;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
             margin-bottom: 30px;
+            animation: slideUp 0.6s ease-out 0.6s both;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary);
+            animation: countUp 2s ease-out;
+        }
+
+        .stat-label {
+            color: #666;
             font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.6s ease-out 0.8s both;
         }
 
         .search-box {
             display: flex;
             gap: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        input[type="text"] {
+        input[type="text"], select {
             flex: 1;
+            min-width: 200px;
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
         }
 
-        input[type="text"]:focus {
+        input[type="text"]:focus, select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
         }
 
         button {
-            padding: 12px 25px;
-            background: #667eea;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         button:hover {
-            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
         button:active {
             transform: scale(0.98);
         }
 
+        /* Loading & Error */
         .loading {
             text-align: center;
-            color: #667eea;
+            color: var(--primary);
             font-weight: 600;
             display: none;
-            margin: 20px 0;
+            margin: 40px 0;
+            font-size: 18px;
         }
 
         .loading.show {
             display: block;
+            animation: pulse 1.5s infinite;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 4px solid rgba(102, 126, 234, 0.3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
         }
 
         .error {
             background: #fee;
             color: #c33;
             padding: 15px;
-            border-radius: 6px;
+            border-radius: 8px;
             margin-bottom: 20px;
             display: none;
+            border-left: 4px solid #c33;
+            animation: slideDown 0.3s ease-out;
         }
 
         .error.show {
             display: block;
         }
 
+        /* PDF Grid */
         .pdf-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+            animation: fadeIn 0.6s ease-out;
         }
 
         .pdf-card {
-            background: #f8f9fa;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            animation: scaleIn 0.5s ease-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pdf-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.25);
+        }
+
+        .pdf-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .pdf-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pdf-image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .pdf-card:hover .pdf-image-overlay {
+            opacity: 1;
+        }
+
+        .pdf-content {
             padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pdf-name {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+            word-break: break-word;
+            font-size: 16px;
+            line-height: 1.3;
+        }
+
+        .pdf-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .pdf-size {
+            background: var(--light);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Engagement Section */
+        .engagement {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .engagement-item {
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            background: var(--light);
             transition: all 0.3s;
             cursor: pointer;
         }
 
-        .pdf-card:hover {
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
-            border-color: #667eea;
-            transform: translateY(-3px);
+        .engagement-item:hover {
+            background: #e8eef7;
+            transform: scale(1.05);
         }
 
-        .pdf-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-
-        .pdf-name {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-            word-break: break-word;
+        .engagement-number {
+            font-weight: bold;
+            color: var(--primary);
             font-size: 14px;
         }
 
-        .pdf-size {
-            color: #999;
-            font-size: 12px;
+        .engagement-label {
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-bottom: 15px;
         }
 
-        .download-btn {
-            width: 100%;
-            padding: 8px;
-            background: #667eea;
-            color: white;
+        .download-btn, .like-btn {
+            padding: 10px;
             border: none;
-            border-radius: 4px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
         }
 
         .download-btn:hover {
-            background: #5568d3;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
+        .like-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            color: var(--dark);
+        }
+
+        .like-btn:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .like-btn.liked {
+            background: #ffe0e0;
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* Comments Section */
+        .comments-section {
+            background: var(--light);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .comment {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .comment-user {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .comment-text {
+            color: #333;
+            word-break: break-word;
+        }
+
+        .comment-input-section {
+            display: flex;
+            gap: 8px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: inherit;
+        }
+
+        .comment-submit {
+            padding: 8px 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .comment-submit:hover {
+            background: var(--secondary);
+        }
+
+        /* Online Users */
+        .online-users {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .users-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .online-indicator {
+            width: 12px;
+            height: 12px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .user-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 12px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-name {
+            font-weight: bold;
+        }
+
+        /* No Results */
         .no-results {
             text-align: center;
             color: #999;
-            padding: 40px 20px;
-            font-size: 16px;
+            padding: 60px 20px;
+            font-size: 18px;
+            animation: fadeIn 0.5s ease-out;
         }
 
+        .no-results-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Footer Stats */
         .stats {
             text-align: center;
             color: #666;
             font-size: 14px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.6s ease-out;
         }
 
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
             }
 
             .pdf-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
             }
 
             .search-box {
                 flex-direction: column;
             }
 
+            input[type="text"], select {
+                min-width: 100%;
+            }
+
             button {
                 width: 100%;
+            }
+
+            .engagement {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px 15px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .header-banner {
+                height: 150px;
+            }
+
+            .pdf-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .users-grid {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📚 PDF Library</h1>
-        <p class="subtitle">Search and download PDFs from emalawi19 folder</p>
+    <div class="header">
+        <div class="header-banner">
+            <div class="header-banner-content">📚</div>
+        </div>
+        <h1>📖 PDF Library Hub</h1>
+        <p class="subtitle">Search, Download & Share Educational Resources</p>
+    </div>
 
-        <div class="search-box">
-            <input 
-                type="text" 
-                id="searchInput" 
-                placeholder="Search PDFs by name..."
-                autocomplete="off"
-            >
-            <button onclick="loadPDFs()">Search</button>
+    <div class="container">
+        <!-- Online Users Section -->
+        <div class="online-users">
+            <div class="users-title">
+                <span class="online-indicator"></span>
+                <span id="onlineCount">0</span> Online Users
+            </div>
+            <div class="users-grid" id="usersGrid"></div>
         </div>
 
-        <div class="loading" id="loading">Loading PDFs...</div>
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPdfs">0</div>
+                <div class="stat-label">Total PDFs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalDownloads">0</div>
+                <div class="stat-label">Total Downloads</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalLikes">0</div>
+                <div class="stat-label">Total Likes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalComments">0</div>
+                <div class="stat-label">Total Comments</div>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="🔍 Search PDFs by name or subject..."
+                    autocomplete="off"
+                >
+                <select id="sortBy">
+                    <option value="name">Sort by Name</option>
+                    <option value="downloads">Most Downloaded</option>
+                    <option value="likes">Most Liked</option>
+                    <option value="comments">Most Commented</option>
+                </select>
+                <button onclick="loadPDFs()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <span class="spinner"></span> Loading PDFs...
+        </div>
         <div class="error" id="error"></div>
         <div class="pdf-grid" id="pdfGrid"></div>
         <div class="no-results" id="noResults" style="display: none;">
-            No PDFs found. Try a different search.
+            <div class="no-results-icon">📭</div>
+            <div>No PDFs found. Try a different search.</div>
         </div>
         <div class="stats" id="stats"></div>
     </div>
 
     <script>
         const GITHUB_OWNER = 'emalawi';
-        const GITHUB_REPO = location.hostname === 'localhost' ? 'your-repo-name' : 
-                           (window.location.pathname.includes('/') ? 
-                            window.location.pathname.split('/')[1] : 'your-repo-name');
+        const GITHUB_REPO = 'School-';
         const PDFS_FOLDER = 'emalawi19';
         
         let allPDFs = [];
+        let pdfStats = {};
+        let onlineUsers = 0;
 
-        // Auto-load PDFs on page load
+        // Simulated user avatars and names
+        const userAvatars = ['👨‍🎓', '👩‍🎓', '👨‍💼', '👩‍💼', '👨‍🏫', '👩‍🏫', '🧑‍💻', '👨‍🔬'];
+        const userNames = ['Alex', 'Sarah', 'Mike', 'Emma', 'John', 'Lisa', 'David', 'Nina', 'Chris', 'Maya'];
+
+        // PDF cover images (various educational images)
+        const pdfImages = [
+            'https://images.unsplash.com/photo-1507842721343-583f20270319?w=400&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=400&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1451127580459-f4eef28ac821?w=400&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1548565398-07da56513002?w=400&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1543002588-d83cedbc4d2e?w=400&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop',
+            'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=300&fit=crop',
+        ];
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadPDFs();
+            simulateOnlineUsers();
+            updateOnlineCount();
+            setInterval(simulateOnlineUsers, 5000);
+            setInterval(updateOnlineCount, 3000);
         });
 
-        // Allow Enter key to search
+        // Search and sort
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') loadPDFs();
+        });
+
+        document.getElementById('sortBy').addEventListener('change', () => {
+            displayPDFs(allPDFs);
         });
 
         async function loadPDFs() {
@@ -250,22 +816,19 @@
             const error = document.getElementById('error');
             const pdfGrid = document.getElementById('pdfGrid');
             const noResults = document.getElementById('noResults');
-            const stats = document.getElementById('stats');
 
             loading.classList.add('show');
             error.classList.remove('show');
             pdfGrid.innerHTML = '';
             noResults.style.display = 'none';
-            stats.innerHTML = '';
 
             try {
-                // Fetch PDFs from GitHub API
                 const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${PDFS_FOLDER}`;
                 
                 const response = await fetch(apiUrl);
 
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch PDFs. Make sure the repository "${GITHUB_REPO}" and folder "${PDFS_FOLDER}" exist. Error: ${response.statusText}`);
+                    throw new Error(`Failed to fetch PDFs. Status: ${response.status}`);
                 }
 
                 const data = await response.json();
@@ -274,12 +837,23 @@
                     throw new Error('Invalid response from GitHub API');
                 }
 
-                // Filter only PDF files
                 allPDFs = data.filter(file => file.name.toLowerCase().endsWith('.pdf'));
 
                 if (allPDFs.length === 0) {
                     throw new Error(`No PDFs found in the "${PDFS_FOLDER}" folder`);
                 }
+
+                // Initialize stats for each PDF
+                allPDFs.forEach(pdf => {
+                    if (!pdfStats[pdf.name]) {
+                        pdfStats[pdf.name] = {
+                            downloads: Math.floor(Math.random() * 500),
+                            likes: Math.floor(Math.random() * 200),
+                            comments: [],
+                            liked: false
+                        };
+                    }
+                });
 
                 // Filter by search term
                 let filteredPDFs = allPDFs;
@@ -289,42 +863,115 @@
                     );
                 }
 
-                // Display results
                 if (filteredPDFs.length === 0) {
                     noResults.style.display = 'block';
                 } else {
-                    filteredPDFs.forEach(pdf => {
-                        const card = createPDFCard(pdf);
-                        pdfGrid.appendChild(card);
-                    });
+                    displayPDFs(filteredPDFs);
                 }
 
-                // Show stats
-                stats.innerHTML = `Found ${filteredPDFs.length} of ${allPDFs.length} PDFs`;
+                updateStats();
 
             } catch (err) {
                 error.classList.add('show');
-                error.innerHTML = `<strong>Error:</strong> ${err.message}<br><small>Make sure you've set the correct repository name and the "emalawi19" folder exists in your repository.</small>`;
+                error.innerHTML = `<strong>⚠️ Error:</strong> ${err.message}`;
                 console.error('Error loading PDFs:', err);
             } finally {
                 loading.classList.remove('show');
             }
         }
 
-        function createPDFCard(pdf) {
+        function displayPDFs(pdfsToDisplay) {
+            const pdfGrid = document.getElementById('pdfGrid');
+            pdfGrid.innerHTML = '';
+
+            // Sort PDFs
+            const sortBy = document.getElementById('sortBy').value;
+            let sortedPdfs = [...pdfsToDisplay];
+
+            if (sortBy === 'downloads') {
+                sortedPdfs.sort((a, b) => pdfStats[b.name].downloads - pdfStats[a.name].downloads);
+            } else if (sortBy === 'likes') {
+                sortedPdfs.sort((a, b) => pdfStats[b.name].likes - pdfStats[a.name].likes);
+            } else if (sortBy === 'comments') {
+                sortedPdfs.sort((a, b) => pdfStats[b.name].comments.length - pdfStats[a.name].comments.length);
+            }
+
+            sortedPdfs.forEach((pdf, index) => {
+                const card = createPDFCard(pdf, index);
+                pdfGrid.appendChild(card);
+            });
+        }
+
+        function createPDFCard(pdf, index) {
             const card = document.createElement('div');
             card.className = 'pdf-card';
 
             const sizeMB = (pdf.size / 1024 / 1024).toFixed(2);
             const downloadUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${PDFS_FOLDER}/${pdf.name}`;
+            const stats = pdfStats[pdf.name];
+            const imageUrl = pdfImages[index % pdfImages.length];
+
+            const commentsHtml = stats.comments.slice(-2).map(comment => `
+                <div class="comment">
+                    <div class="comment-user">${comment.user}</div>
+                    <div class="comment-text">${comment.text}</div>
+                </div>
+            `).join('');
 
             card.innerHTML = `
-                <div class="pdf-icon">📄</div>
-                <div class="pdf-name" title="${pdf.name}">${pdf.name}</div>
-                <div class="pdf-size">${sizeMB > 0 ? sizeMB + ' MB' : (pdf.size) + ' B'}</div>
-                <button class="download-btn" onclick="downloadPDF('${downloadUrl}', '${pdf.name}')">
-                    ⬇️ Download
-                </button>
+                <div class="pdf-image">
+                    <img src="${imageUrl}" alt="${pdf.name}" onerror="this.style.display='none'">
+                    <div class="pdf-image-overlay">
+                        <i class="fas fa-file-pdf" style="font-size: 40px; color: white;"></i>
+                    </div>
+                </div>
+                <div class="pdf-content">
+                    <div class="pdf-name" title="${pdf.name}">${pdf.name}</div>
+                    
+                    <div class="pdf-meta">
+                        <span class="pdf-size">${sizeMB > 0 ? sizeMB + ' MB' : (pdf.size) + ' B'}</span>
+                        <span>📅 ${new Date().toLocaleDateString()}</span>
+                    </div>
+
+                    <div class="engagement">
+                        <div class="engagement-item">
+                            <div class="engagement-number">${stats.downloads}</div>
+                            <div class="engagement-label">⬇️ Downloads</div>
+                        </div>
+                        <div class="engagement-item">
+                            <div class="engagement-number">${stats.likes}</div>
+                            <div class="engagement-label">❤️ Likes</div>
+                        </div>
+                        <div class="engagement-item">
+                            <div class="engagement-number">${stats.comments.length}</div>
+                            <div class="engagement-label">💬 Comments</div>
+                        </div>
+                        <div class="engagement-item">
+                            <div class="engagement-number">${Math.floor(Math.random() * 50) + 5}</div>
+                            <div class="engagement-label">👁️ Views</div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="download-btn" onclick="downloadPDF('${downloadUrl}', '${pdf.name}')">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button class="like-btn ${stats.liked ? 'liked' : ''}" onclick="toggleLike('${pdf.name}', this)">
+                            <i class="fas fa-heart"></i> Like
+                        </button>
+                    </div>
+
+                    ${stats.comments.length > 0 ? `
+                        <div class="comments-section">
+                            ${commentsHtml}
+                        </div>
+                    ` : ''}
+
+                    <div class="comment-input-section">
+                        <input type="text" class="comment-input" placeholder="Add a comment..." onkeypress="handleCommentKeypress(event, '${pdf.name}')">
+                        <button class="comment-submit" onclick="addComment('${pdf.name}')">Post</button>
+                    </div>
+                </div>
             `;
 
             return card;
@@ -337,6 +984,106 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+
+            // Simulate download count increase
+            pdfStats[filename].downloads += 1;
+            updateStats();
+            loadPDFs();
+        }
+
+        function toggleLike(filename, button) {
+            if (pdfStats[filename].liked) {
+                pdfStats[filename].liked = false;
+                pdfStats[filename].likes -= 1;
+                button.classList.remove('liked');
+            } else {
+                pdfStats[filename].liked = true;
+                pdfStats[filename].likes += 1;
+                button.classList.add('liked');
+            }
+            updateStats();
+        }
+
+        function handleCommentKeypress(event, filename) {
+            if (event.key === 'Enter') {
+                addComment(filename);
+            }
+        }
+
+        function addComment(filename) {
+            const input = event.target.previousElementSibling;
+            const commentText = input.value.trim();
+
+            if (!commentText) return;
+
+            const randomUser = userNames[Math.floor(Math.random() * userNames.length)];
+            pdfStats[filename].comments.push({
+                user: randomUser,
+                text: commentText
+            });
+
+            input.value = '';
+            updateStats();
+            loadPDFs();
+        }
+
+        function simulateOnlineUsers() {
+            onlineUsers = Math.floor(Math.random() * 150) + 5;
+            updateOnlineUsersList();
+        }
+
+        function updateOnlineCount() {
+            document.getElementById('onlineCount').textContent = onlineUsers;
+        }
+
+        function updateOnlineUsersList() {
+            const usersGrid = document.getElementById('usersGrid');
+            usersGrid.innerHTML = '';
+
+            const displayCount = Math.min(onlineUsers, 6);
+            for (let i = 0; i < displayCount; i++) {
+                const userBadge = document.createElement('div');
+                userBadge.className = 'user-badge';
+                const randomAvatar = userAvatars[Math.floor(Math.random() * userAvatars.length)];
+                const randomName = userNames[Math.floor(Math.random() * userNames.length)];
+
+                userBadge.innerHTML = `
+                    <div class="user-avatar">${randomAvatar}</div>
+                    <div class="user-name">${randomName}</div>
+                    <div style="font-size: 10px; opacity: 0.8;">Online</div>
+                `;
+                usersGrid.appendChild(userBadge);
+            }
+
+            if (onlineUsers > 6) {
+                const moreBadge = document.createElement('div');
+                moreBadge.className = 'user-badge';
+                moreBadge.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 5px;">+${onlineUsers - 6}</div>
+                    <div style="font-size: 10px;">More online</div>
+                `;
+                usersGrid.appendChild(moreBadge);
+            }
+        }
+
+        function updateStats() {
+            const totalDownloads = Object.values(pdfStats).reduce((sum, s) => sum + s.downloads, 0);
+            const totalLikes = Object.values(pdfStats).reduce((sum, s) => sum + s.likes, 0);
+            const totalComments = Object.values(pdfStats).reduce((sum, s) => sum + s.comments.length, 0);
+
+            document.getElementById('totalPdfs').textContent = allPDFs.length;
+            document.getElementById('totalDownloads').textContent = totalDownloads;
+            document.getElementById('totalLikes').textContent = totalLikes;
+            document.getElementById('totalComments').textContent = totalComments;
+
+            const stats = document.getElementById('stats');
+            stats.innerHTML = `
+                <strong>📊 Library Statistics:</strong> 
+                ${allPDFs.length} PDFs | 
+                ${totalDownloads} Total Downloads | 
+                ${totalLikes} Total Likes | 
+                ${totalComments} Total Comments
+            `;
         }
     </script>
 </body>
