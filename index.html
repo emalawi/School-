@@ -85,6 +85,47 @@
             animation: slideUp 0.6s ease-out 0.4s both;
         }
 
+        /* Online Users Counter */
+        .online-counter {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.6s ease-out 0.3s both;
+        }
+
+        .online-counter-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            background: #4CAF50;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .online-count {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .online-label {
+            font-size: 14px;
+            color: #666;
+        }
+
         /* Stats Bar */
         .stats-bar {
             display: grid;
@@ -447,78 +488,6 @@
             background: var(--secondary);
         }
 
-        /* Online Users */
-        .online-users {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            animation: slideUp 0.6s ease-out;
-        }
-
-        .users-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--dark);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .online-indicator {
-            width: 12px;
-            height: 12px;
-            background: #4CAF50;
-            border-radius: 50%;
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .users-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-        }
-
-        .user-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 12px;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: white;
-            border-radius: 50%;
-            margin: 0 auto 8px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-name {
-            font-weight: bold;
-            font-size: 11px;
-        }
-
-        .user-status {
-            font-size: 9px;
-            opacity: 0.8;
-            margin-top: 3px;
-        }
-
         /* No Results */
         .no-results {
             text-align: center;
@@ -669,8 +638,9 @@
                 grid-template-columns: 1fr;
             }
 
-            .users-grid {
-                grid-template-columns: repeat(3, 1fr);
+            .online-counter {
+                width: 100%;
+                text-align: center;
             }
         }
     </style>
@@ -682,18 +652,20 @@
         </div>
         <h1>📖 PDF Library Hub</h1>
         <p class="subtitle">Search, Download & Share Educational Resources</p>
+        
+        <!-- Online Users Counter -->
+        <div class="online-counter">
+            <div class="online-counter-content">
+                <div class="online-dot"></div>
+                <div>
+                    <div class="online-count" id="onlineCount">0</div>
+                    <div class="online-label">Online Users</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="container">
-        <!-- Online Users Section -->
-        <div class="online-users">
-            <div class="users-title">
-                <span class="online-indicator"></span>
-                <span id="onlineCount">0</span> Online Users
-            </div>
-            <div class="users-grid" id="usersGrid"></div>
-        </div>
-
         <!-- Stats Bar -->
         <div class="stats-bar">
             <div class="stat-card">
@@ -754,11 +726,8 @@
         
         let allPDFs = [];
         let pdfStats = {};
-        let onlineUsers = [];
-        let currentUser = null;
-
-        const userAvatars = ['👨‍🎓', '👩‍🎓', '👨‍💼', '👩‍💼', '👨‍🏫', '👩‍🏫', '🧑‍💻', '👨‍🔬', '👩‍💻', '👨‍⚕️'];
-        const userNames = ['Alex', 'Sarah', 'Mike', 'Emma', 'John', 'Lisa', 'David', 'Nina', 'Chris', 'Maya', 'James', 'Rachel', 'Tom', 'Diana', 'Robert'];
+        let onlineUsers = 0;
+        let userId = null;
 
         // Load stats from localStorage
         function loadStatsFromStorage() {
@@ -773,89 +742,63 @@
             localStorage.setItem('pdfStats', JSON.stringify(pdfStats));
         }
 
-        // Load online users from localStorage
+        // Load online users count from localStorage
         function loadOnlineUsersFromStorage() {
-            const stored = localStorage.getItem('onlineUsers');
+            const stored = localStorage.getItem('onlineUsersCount');
             if (stored) {
-                onlineUsers = JSON.parse(stored);
+                onlineUsers = parseInt(stored);
             } else {
-                onlineUsers = [];
+                onlineUsers = 1;
             }
-            cleanupExpiredUsers();
         }
 
-        // Save online users to localStorage
+        // Save online users count to localStorage
         function saveOnlineUsersToStorage() {
-            localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
+            localStorage.setItem('onlineUsersCount', onlineUsers.toString());
         }
 
-        // Generate or load current user
-        function initializeCurrentUser() {
-            let userId = localStorage.getItem('userId');
-            if (!userId) {
-                userId = 'user_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('userId', userId);
-            }
-
-            currentUser = {
-                id: userId,
-                name: userNames[Math.floor(Math.random() * userNames.length)] + '_' + userId.substr(-4),
-                avatar: userAvatars[Math.floor(Math.random() * userAvatars.length)],
-                lastActive: Date.now()
-            };
-
-            // Add current user to online users
-            const existingUserIndex = onlineUsers.findIndex(u => u.id === currentUser.id);
-            if (existingUserIndex > -1) {
-                onlineUsers[existingUserIndex] = currentUser;
-            } else {
-                onlineUsers.push(currentUser);
-            }
-            saveOnlineUsersToStorage();
-        }
-
-        // Clean up expired users (inactive for more than 5 minutes)
-        function cleanupExpiredUsers() {
-            const now = Date.now();
-            const fiveMinutesAgo = now - (5 * 60 * 1000);
-            onlineUsers = onlineUsers.filter(user => user.lastActive > fiveMinutesAgo);
-            saveOnlineUsersToStorage();
-        }
-
-        // Update current user's last active time
-        function updateUserActivity() {
-            if (currentUser) {
-                currentUser.lastActive = Date.now();
-                const userIndex = onlineUsers.findIndex(u => u.id === currentUser.id);
-                if (userIndex > -1) {
-                    onlineUsers[userIndex] = currentUser;
-                }
+        // Initialize user
+        function initializeUser() {
+            let storedUserId = localStorage.getItem('userId');
+            if (!storedUserId) {
+                storedUserId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('userId', storedUserId);
+                // New user, increment online count
+                onlineUsers += 1;
                 saveOnlineUsersToStorage();
-                updateOnlineUsersList();
             }
+            userId = storedUserId;
+        }
+
+        // Update online users (simulates activity)
+        function updateOnlineUsers() {
+            // Randomly increase or decrease online users slightly
+            const random = Math.random();
+            if (random < 0.05 && onlineUsers < 1000) {
+                onlineUsers += 1; // New user joins
+            } else if (random > 0.95 && onlineUsers > 1) {
+                onlineUsers -= 1; // User leaves
+            }
+            saveOnlineUsersToStorage();
+            updateOnlineCount();
+        }
+
+        // Update online count display
+        function updateOnlineCount() {
+            document.getElementById('onlineCount').textContent = onlineUsers;
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadStatsFromStorage();
             loadOnlineUsersFromStorage();
-            initializeCurrentUser();
+            initializeUser();
             loadPDFs();
-            updateOnlineUsersList();
+            updateOnlineCount();
             
-            // Update user activity every 30 seconds
-            setInterval(updateUserActivity, 30000);
-            
-            // Clean up expired users every minute
-            setInterval(() => {
-                cleanupExpiredUsers();
-                updateOnlineUsersList();
-            }, 60000);
+            // Update online users count every 5-10 seconds
+            setInterval(updateOnlineUsers, Math.random() * 5000 + 5000);
         });
-
-        // Track user activity
-        document.addEventListener('click', updateUserActivity);
-        document.addEventListener('keypress', updateUserActivity);
 
         // Search and sort
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
@@ -1042,7 +985,6 @@
             saveStatsToStorage();
             updateStats();
             displayPDFs(allPDFs);
-            updateUserActivity();
         }
 
         function toggleLike(filename, button) {
@@ -1058,7 +1000,6 @@
             saveStatsToStorage();
             updateStats();
             displayPDFs(allPDFs);
-            updateUserActivity();
         }
 
         function handleCommentKeypress(event, filename) {
@@ -1082,56 +1023,21 @@
         }
 
         function addCommentText(filename, commentText) {
+            const userNum = Math.floor(Math.random() * 10000);
             pdfStats[filename].comments.push({
-                user: currentUser.name,
+                user: 'User ' + userNum,
                 text: commentText
             });
 
             // Clear input
             const inputs = document.querySelectorAll('.comment-input');
             inputs.forEach(input => {
-                if (input.parentElement.closest('.pdf-card')) {
-                    input.value = '';
-                }
+                input.value = '';
             });
 
             saveStatsToStorage();
             updateStats();
             displayPDFs(allPDFs);
-            updateUserActivity();
-        }
-
-        function updateOnlineUsersList() {
-            const usersGrid = document.getElementById('usersGrid');
-            usersGrid.innerHTML = '';
-
-            cleanupExpiredUsers();
-
-            const displayUsers = onlineUsers.slice(0, 6);
-            displayUsers.forEach(user => {
-                const userBadge = document.createElement('div');
-                userBadge.className = 'user-badge';
-                const isCurrent = user.id === currentUser.id;
-
-                userBadge.innerHTML = `
-                    <div class="user-avatar">${user.avatar}</div>
-                    <div class="user-name">${user.name}</div>
-                    <div class="user-status">${isCurrent ? 'You' : 'Online'}</div>
-                `;
-                usersGrid.appendChild(userBadge);
-            });
-
-            if (onlineUsers.length > 6) {
-                const moreBadge = document.createElement('div');
-                moreBadge.className = 'user-badge';
-                moreBadge.innerHTML = `
-                    <div style="font-size: 24px; margin-bottom: 5px;">+${onlineUsers.length - 6}</div>
-                    <div style="font-size: 10px;">More online</div>
-                `;
-                usersGrid.appendChild(moreBadge);
-            }
-
-            document.getElementById('onlineCount').textContent = onlineUsers.length;
         }
 
         function updateStats() {
