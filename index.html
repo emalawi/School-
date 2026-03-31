@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Search & Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            display: none;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .pdf-card {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .pdf-card:hover {
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        .pdf-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .pdf-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            word-break: break-word;
+            font-size: 14px;
+        }
+
+        .pdf-size {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 8px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #5568d3;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        .stats {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .pdf-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 PDF Library</h1>
+        <p class="subtitle">Search and download PDFs from emalawi19 folder</p>
+
+        <div class="search-box">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search PDFs by name..."
+                autocomplete="off"
+            >
+            <button onclick="loadPDFs()">Search</button>
+        </div>
+
+        <div class="loading" id="loading">Loading PDFs...</div>
+        <div class="error" id="error"></div>
+        <div class="pdf-grid" id="pdfGrid"></div>
+        <div class="no-results" id="noResults" style="display: none;">
+            No PDFs found. Try a different search.
+        </div>
+        <div class="stats" id="stats"></div>
+    </div>
+
+    <script>
+        const GITHUB_OWNER = 'emalawi';
+        const GITHUB_REPO = location.hostname === 'localhost' ? 'your-repo-name' : 
+                           (window.location.pathname.includes('/') ? 
+                            window.location.pathname.split('/')[1] : 'your-repo-name');
+        const PDFS_FOLDER = 'emalawi19';
+        
+        let allPDFs = [];
+
+        // Auto-load PDFs on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPDFs();
+        });
+
+        // Allow Enter key to search
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadPDFs();
+        });
+
+        async function loadPDFs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const pdfGrid = document.getElementById('pdfGrid');
+            const noResults = document.getElementById('noResults');
+            const stats = document.getElementById('stats');
+
+            loading.classList.add('show');
+            error.classList.remove('show');
+            pdfGrid.innerHTML = '';
+            noResults.style.display = 'none';
+            stats.innerHTML = '';
+
+            try {
+                // Fetch PDFs from GitHub API
+                const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${PDFS_FOLDER}`;
+                
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch PDFs. Make sure the repository "${GITHUB_REPO}" and folder "${PDFS_FOLDER}" exist. Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (!Array.isArray(data)) {
+                    throw new Error('Invalid response from GitHub API');
+                }
+
+                // Filter only PDF files
+                allPDFs = data.filter(file => file.name.toLowerCase().endsWith('.pdf'));
+
+                if (allPDFs.length === 0) {
+                    throw new Error(`No PDFs found in the "${PDFS_FOLDER}" folder`);
+                }
+
+                // Filter by search term
+                let filteredPDFs = allPDFs;
+                if (searchTerm) {
+                    filteredPDFs = allPDFs.filter(pdf => 
+                        pdf.name.toLowerCase().includes(searchTerm)
+                    );
+                }
+
+                // Display results
+                if (filteredPDFs.length === 0) {
+                    noResults.style.display = 'block';
+                } else {
+                    filteredPDFs.forEach(pdf => {
+                        const card = createPDFCard(pdf);
+                        pdfGrid.appendChild(card);
+                    });
+                }
+
+                // Show stats
+                stats.innerHTML = `Found ${filteredPDFs.length} of ${allPDFs.length} PDFs`;
+
+            } catch (err) {
+                error.classList.add('show');
+                error.innerHTML = `<strong>Error:</strong> ${err.message}<br><small>Make sure you've set the correct repository name and the "emalawi19" folder exists in your repository.</small>`;
+                console.error('Error loading PDFs:', err);
+            } finally {
+                loading.classList.remove('show');
+            }
+        }
+
+        function createPDFCard(pdf) {
+            const card = document.createElement('div');
+            card.className = 'pdf-card';
+
+            const sizeMB = (pdf.size / 1024 / 1024).toFixed(2);
+            const downloadUrl = `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/main/${PDFS_FOLDER}/${pdf.name}`;
+
+            card.innerHTML = `
+                <div class="pdf-icon">📄</div>
+                <div class="pdf-name" title="${pdf.name}">${pdf.name}</div>
+                <div class="pdf-size">${sizeMB > 0 ? sizeMB + ' MB' : (pdf.size) + ' B'}</div>
+                <button class="download-btn" onclick="downloadPDF('${downloadUrl}', '${pdf.name}')">
+                    ⬇️ Download
+                </button>
+            `;
+
+            return card;
+        }
+
+        function downloadPDF(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
