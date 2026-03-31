@@ -510,6 +510,13 @@
 
         .user-name {
             font-weight: bold;
+            font-size: 11px;
+        }
+
+        .user-status {
+            font-size: 9px;
+            opacity: 0.8;
+            margin-top: 3px;
         }
 
         /* No Results */
@@ -747,10 +754,11 @@
         
         let allPDFs = [];
         let pdfStats = {};
-        let onlineUsers = 0;
+        let onlineUsers = [];
+        let currentUser = null;
 
-        const userAvatars = ['👨‍🎓', '👩‍🎓', '👨‍💼', '👩‍💼', '👨‍🏫', '👩‍🏫', '🧑‍💻', '👨‍🔬'];
-        const userNames = ['Alex', 'Sarah', 'Mike', 'Emma', 'John', 'Lisa', 'David', 'Nina', 'Chris', 'Maya'];
+        const userAvatars = ['👨‍🎓', '👩‍🎓', '👨‍💼', '👩‍💼', '👨‍🏫', '👩‍🏫', '🧑‍💻', '👨‍🔬', '👩‍💻', '👨‍⚕️'];
+        const userNames = ['Alex', 'Sarah', 'Mike', 'Emma', 'John', 'Lisa', 'David', 'Nina', 'Chris', 'Maya', 'James', 'Rachel', 'Tom', 'Diana', 'Robert'];
 
         // Load stats from localStorage
         function loadStatsFromStorage() {
@@ -765,15 +773,89 @@
             localStorage.setItem('pdfStats', JSON.stringify(pdfStats));
         }
 
+        // Load online users from localStorage
+        function loadOnlineUsersFromStorage() {
+            const stored = localStorage.getItem('onlineUsers');
+            if (stored) {
+                onlineUsers = JSON.parse(stored);
+            } else {
+                onlineUsers = [];
+            }
+            cleanupExpiredUsers();
+        }
+
+        // Save online users to localStorage
+        function saveOnlineUsersToStorage() {
+            localStorage.setItem('onlineUsers', JSON.stringify(onlineUsers));
+        }
+
+        // Generate or load current user
+        function initializeCurrentUser() {
+            let userId = localStorage.getItem('userId');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('userId', userId);
+            }
+
+            currentUser = {
+                id: userId,
+                name: userNames[Math.floor(Math.random() * userNames.length)] + '_' + userId.substr(-4),
+                avatar: userAvatars[Math.floor(Math.random() * userAvatars.length)],
+                lastActive: Date.now()
+            };
+
+            // Add current user to online users
+            const existingUserIndex = onlineUsers.findIndex(u => u.id === currentUser.id);
+            if (existingUserIndex > -1) {
+                onlineUsers[existingUserIndex] = currentUser;
+            } else {
+                onlineUsers.push(currentUser);
+            }
+            saveOnlineUsersToStorage();
+        }
+
+        // Clean up expired users (inactive for more than 5 minutes)
+        function cleanupExpiredUsers() {
+            const now = Date.now();
+            const fiveMinutesAgo = now - (5 * 60 * 1000);
+            onlineUsers = onlineUsers.filter(user => user.lastActive > fiveMinutesAgo);
+            saveOnlineUsersToStorage();
+        }
+
+        // Update current user's last active time
+        function updateUserActivity() {
+            if (currentUser) {
+                currentUser.lastActive = Date.now();
+                const userIndex = onlineUsers.findIndex(u => u.id === currentUser.id);
+                if (userIndex > -1) {
+                    onlineUsers[userIndex] = currentUser;
+                }
+                saveOnlineUsersToStorage();
+                updateOnlineUsersList();
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadStatsFromStorage();
+            loadOnlineUsersFromStorage();
+            initializeCurrentUser();
             loadPDFs();
-            simulateOnlineUsers();
-            updateOnlineCount();
-            setInterval(simulateOnlineUsers, 5000);
-            setInterval(updateOnlineCount, 3000);
+            updateOnlineUsersList();
+            
+            // Update user activity every 30 seconds
+            setInterval(updateUserActivity, 30000);
+            
+            // Clean up expired users every minute
+            setInterval(() => {
+                cleanupExpiredUsers();
+                updateOnlineUsersList();
+            }, 60000);
         });
+
+        // Track user activity
+        document.addEventListener('click', updateUserActivity);
+        document.addEventListener('keypress', updateUserActivity);
 
         // Search and sort
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
@@ -960,6 +1042,7 @@
             saveStatsToStorage();
             updateStats();
             displayPDFs(allPDFs);
+            updateUserActivity();
         }
 
         function toggleLike(filename, button) {
@@ -975,6 +1058,7 @@
             saveStatsToStorage();
             updateStats();
             displayPDFs(allPDFs);
+            updateUserActivity();
         }
 
         function handleCommentKeypress(event, filename) {
@@ -998,54 +1082,56 @@
         }
 
         function addCommentText(filename, commentText) {
-            const randomUser = userNames[Math.floor(Math.random() * userNames.length)];
             pdfStats[filename].comments.push({
-                user: randomUser,
+                user: currentUser.name,
                 text: commentText
+            });
+
+            // Clear input
+            const inputs = document.querySelectorAll('.comment-input');
+            inputs.forEach(input => {
+                if (input.parentElement.closest('.pdf-card')) {
+                    input.value = '';
+                }
             });
 
             saveStatsToStorage();
             updateStats();
             displayPDFs(allPDFs);
-        }
-
-        function simulateOnlineUsers() {
-            onlineUsers = Math.floor(Math.random() * 150) + 5;
-            updateOnlineUsersList();
-        }
-
-        function updateOnlineCount() {
-            document.getElementById('onlineCount').textContent = onlineUsers;
+            updateUserActivity();
         }
 
         function updateOnlineUsersList() {
             const usersGrid = document.getElementById('usersGrid');
             usersGrid.innerHTML = '';
 
-            const displayCount = Math.min(onlineUsers, 6);
-            for (let i = 0; i < displayCount; i++) {
+            cleanupExpiredUsers();
+
+            const displayUsers = onlineUsers.slice(0, 6);
+            displayUsers.forEach(user => {
                 const userBadge = document.createElement('div');
                 userBadge.className = 'user-badge';
-                const randomAvatar = userAvatars[Math.floor(Math.random() * userAvatars.length)];
-                const randomName = userNames[Math.floor(Math.random() * userNames.length)];
+                const isCurrent = user.id === currentUser.id;
 
                 userBadge.innerHTML = `
-                    <div class="user-avatar">${randomAvatar}</div>
-                    <div class="user-name">${randomName}</div>
-                    <div style="font-size: 10px; opacity: 0.8;">Online</div>
+                    <div class="user-avatar">${user.avatar}</div>
+                    <div class="user-name">${user.name}</div>
+                    <div class="user-status">${isCurrent ? 'You' : 'Online'}</div>
                 `;
                 usersGrid.appendChild(userBadge);
-            }
+            });
 
-            if (onlineUsers > 6) {
+            if (onlineUsers.length > 6) {
                 const moreBadge = document.createElement('div');
                 moreBadge.className = 'user-badge';
                 moreBadge.innerHTML = `
-                    <div style="font-size: 24px; margin-bottom: 5px;">+${onlineUsers - 6}</div>
+                    <div style="font-size: 24px; margin-bottom: 5px;">+${onlineUsers.length - 6}</div>
                     <div style="font-size: 10px;">More online</div>
                 `;
                 usersGrid.appendChild(moreBadge);
             }
+
+            document.getElementById('onlineCount').textContent = onlineUsers.length;
         }
 
         function updateStats() {
