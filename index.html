@@ -108,7 +108,7 @@ async function incrementDownload(pdfName) {
     await savePDFStats(stats);
 }
 
-// ================= PAYMENT SYSTEM =================
+// ================= PAYMENT SYSTEM (CONNECTED) =================
 function downloadPDF(pdfName, downloadUrl) {
 
     const transId = prompt("💰 Pay MWK 50.00\n\nEnter Transaction ID:");
@@ -118,14 +118,23 @@ function downloadPDF(pdfName, downloadUrl) {
         return;
     }
 
-    if (transId.length < 6) {
-        alert("❌ Invalid Transaction ID");
-        return;
-    }
-
     alert("⏳ Verifying payment...");
 
-    setTimeout(async () => {
+    fetch("https://detailed-transmission-random-remains.trycloudflare.com/verify", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ transId: transId })
+    })
+    .then(res => res.json())
+    .then(async data => {
+
+        if (!data.success) {
+            alert("❌ Invalid or unpaid Transaction ID");
+            return;
+        }
+
         alert("✅ Payment Verified!");
 
         await incrementDownload(pdfName);
@@ -138,7 +147,11 @@ function downloadPDF(pdfName, downloadUrl) {
         document.body.removeChild(link);
 
         loadPDFs();
-    }, 1500);
+    })
+    .catch(err => {
+        alert("❌ Cannot connect to payment server");
+        console.error(err);
+    });
 }
 
 // ================= LOAD PDFs =================
