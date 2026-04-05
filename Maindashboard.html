@@ -666,7 +666,7 @@
                 let totalComments = 0;
                 
                 allStats.forEach(stat => {
-                    if (stat.pdfName && stat.pdfName !== 'pdfName') {
+                    if (stat.pdfName && stat.pdfName !== 'pdfName' && stat.pdfName !== 'Username') {
                         totalDownloads += parseInt(stat.Downloads) || 0;
                         totalLikes += parseInt(stat.Likes) || 0;
                         if (stat.Comments) {
@@ -914,23 +914,8 @@
             return div.innerHTML;
         }
         
-        // Initialize Google Sheets structure (create headers if needed)
-        async function initGoogleSheetsStructure() {
-            try {
-                // Check if sheet has data, if not, we'll create on first save
-                const response = await fetch(SHEETDB_API);
-                const data = await response.json();
-                if (!data || data.length === 0 || (data.length === 1 && !data[0].pdfName)) {
-                    console.log('Sheet ready for data');
-                }
-            } catch (error) {
-                console.log('Sheet initialization:', error);
-            }
-        }
-        
         // Initialize
         async function init() {
-            await initGoogleSheetsStructure();
             await loadPDFs();
             
             // Update online count
