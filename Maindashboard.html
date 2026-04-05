@@ -564,36 +564,41 @@
         
         let allPDFs = [];
         
-        // ---------- PDF Stats Functions (Stored in Google Sheets) ----------
+        // ======================== PDF STATS FUNCTIONS ========================
         
         // Get stats for a specific PDF from Google Sheets
         async function getPDFStats(pdfName) {
             try {
+                // Search for rows with this pdfName
                 const response = await fetch(`${SHEETDB_API}/search?pdfName=${encodeURIComponent(pdfName)}`);
                 const data = await response.json();
+                
                 if (data && data.length > 0) {
+                    // Found existing PDF stats row
                     return {
                         pdfName: pdfName,
                         downloads: parseInt(data[0].Downloads) || 0,
                         likes: parseInt(data[0].Likes) || 0,
-                        comments: data[0].Comments ? JSON.parse(data[0].Comments) : []
+                        comments: data[0].Comments ? JSON.parse(data[0].Comments) : [],
+                        rowId: data[0].id || null
                     };
                 }
             } catch (error) {
-                console.log('Fetching stats, might need to create entry');
+                console.log('No existing stats found for:', pdfName);
             }
-            return { pdfName: pdfName, downloads: 0, likes: 0, comments: [] };
+            // Return default stats if none found
+            return { pdfName: pdfName, downloads: 0, likes: 0, comments: [], rowId: null };
         }
         
         // Save or update PDF stats to Google Sheets
         async function savePDFStats(stats) {
             try {
-                // First check if entry exists
+                // First check if entry exists by searching for pdfName
                 const checkResponse = await fetch(`${SHEETDB_API}/search?pdfName=${encodeURIComponent(stats.pdfName)}`);
                 const existing = await checkResponse.json();
                 
-                if (existing && existing.length > 0) {
-                    // Update existing row
+                if (existing && existing.length > 0 && existing[0].pdfName === stats.pdfName) {
+                    // Update existing row using PATCH
                     await fetch(`${SHEETDB_API}/pdfName/${encodeURIComponent(stats.pdfName)}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
@@ -604,6 +609,7 @@
                             LastUpdated: new Date().toISOString()
                         })
                     });
+                    console.log('Updated stats for:', stats.pdfName);
                 } else {
                     // Create new row
                     await fetch(SHEETDB_API, {
@@ -619,6 +625,7 @@
                             }
                         })
                     });
+                    console.log('Created new stats row for:', stats.pdfName);
                 }
                 return true;
             } catch (error) {
@@ -632,6 +639,7 @@
             const stats = await getPDFStats(pdfName);
             stats.downloads = (stats.downloads || 0) + 1;
             await savePDFStats(stats);
+            console.log(`Download counted for ${pdfName}: ${stats.downloads}`);
             return stats.downloads;
         }
         
@@ -640,6 +648,7 @@
             const stats = await getPDFStats(pdfName);
             stats.likes = (stats.likes || 0) + 1;
             await savePDFStats(stats);
+            console.log(`Like counted for ${pdfName}: ${stats.likes}`);
             return stats.likes;
         }
         
@@ -653,6 +662,7 @@
                 user: userName
             });
             await savePDFStats(stats);
+            console.log(`Comment added to ${pdfName} by ${userName}`);
             return stats.comments;
         }
         
@@ -660,21 +670,22 @@
         async function getAllStats() {
             try {
                 const response = await fetch(SHEETDB_API);
-                const allStats = await response.json();
+                const allData = await response.json();
                 let totalDownloads = 0;
                 let totalLikes = 0;
                 let totalComments = 0;
                 
-                allStats.forEach(stat => {
-                    if (stat.pdfName && stat.pdfName !== 'pdfName' && stat.pdfName !== 'Username') {
-                        totalDownloads += parseInt(stat.Downloads) || 0;
-                        totalLikes += parseInt(stat.Likes) || 0;
-                        if (stat.Comments) {
-                            try {
-                                const comments = JSON.parse(stat.Comments);
-                                totalComments += comments.length;
-                            } catch(e) {}
-                        }
+                // Filter only rows that have pdfName (not user rows)
+                const pdfRows = allData.filter(row => row.pdfName && row.pdfName !== 'pdfName' && row.pdfName !== 'Username');
+                
+                pdfRows.forEach(row => {
+                    totalDownloads += parseInt(row.Downloads) || 0;
+                    totalLikes += parseInt(row.Likes) || 0;
+                    if (row.Comments) {
+                        try {
+                            const comments = JSON.parse(row.Comments);
+                            totalComments += comments.length;
+                        } catch(e) {}
                     }
                 });
                 
@@ -853,7 +864,8 @@
                 link.click();
                 document.body.removeChild(link);
                 
-                loadPDFs();
+                // Reload to show updated counts
+                setTimeout(() => loadPDFs(), 500);
             } catch (error) {
                 console.error('Error downloading PDF:', error);
                 alert('Error downloading PDF. Please try again.');
@@ -871,7 +883,8 @@
                     button.classList.remove('liked');
                 }, 300);
                 
-                loadPDFs();
+                // Reload to show updated counts
+                setTimeout(() => loadPDFs(), 500);
             } catch (error) {
                 console.error('Error liking PDF:', error);
             }
@@ -892,6 +905,7 @@
                 await addCommentToPDF(pdfName, commentText, currentUser);
                 await updateTotalStats();
                 commentInput.value = '';
+                // Reload to show updated comments
                 loadPDFs();
             } catch (error) {
                 console.error('Error adding comment:', error);
@@ -928,6 +942,8 @@
                     loadPDFs();
                 }
             });
+            
+            console.log('App initialized! PDF stats will be saved to Google Sheets.');
         }
         
         // Start the application
