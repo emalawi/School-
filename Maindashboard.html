@@ -3,102 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>emalawi19 PDF Portal</title>
+    <title>emalawi19 PDF Library</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f0f2f5; }
-        .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #1a73e8; text-align: center; }
-        .search-input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
-        .pdf-item { border-bottom: 1px solid #eee; padding: 15px 0; }
-        .pdf-name { font-weight: bold; font-size: 1.2em; display: block; margin-bottom: 5px; }
-        .stats { color: #5f6368; font-size: 0.9em; margin-bottom: 10px; }
-        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: 0.2s; }
-        .btn-like { background: #feeef0; color: #d93025; }
-        .btn-download { background: #e6f4ea; color: #1e8e3e; }
-        .btn-comment { background: #e8f0fe; color: #1a73e8; }
-        button:hover { opacity: 0.8; }
-        .comment-box { margin-top: 10px; display: flex; gap: 5px; }
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: #f1f3f9;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--secondary); }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin: 20px 0;
+            outline: none;
+        }
+
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .pdf-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+
+        .pdf-card:hover { transform: translateY(-5px); }
+
+        .pdf-name { font-weight: bold; color: #333; margin-bottom: 10px; display: block; overflow: hidden; text-overflow: ellipsis; }
+
+        .action-btns { display: flex; gap: 10px; margin: 15px 0; }
+
+        button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-dl { background: #4CAF50; color: white; }
+        .btn-like { background: #f44336; color: white; }
+        
+        .comment-section { margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .comment-display { max-height: 80px; overflow-y: auto; font-size: 0.85rem; color: #666; background: #fafafa; padding: 5px; margin-bottom: 10px; border-radius: 4px; }
+        .comment-input-group { display: flex; gap: 5px; }
         .comment-input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn-comm { background: var(--primary); color: white; width: 60px; }
+
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>emalawi19 PDF Library</h1>
-    <input type="text" id="search" class="search-input" placeholder="Search for a PDF..." onkeyup="filterPDFs()">
+<div id="loader" class="loading-overlay"><h2>Updating...</h2></div>
 
-    <div id="pdf-container">
-        <div class="pdf-item" data-name="Manual_2026.pdf">
-            <span class="pdf-name">Manual_2026.pdf</span>
-            <div class="stats" id="stats-Manual_2026.pdf">Loading stats...</div>
-            <div class="actions">
-                <button class="btn-like" onclick="sendAction('Manual_2026.pdf', 'like')">❤️ Like</button>
-                <button class="btn-download" onclick="sendAction('Manual_2026.pdf', 'download', 'https://your-hosting.com/emalawi19/Manual_2026.pdf')">📥 Download</button>
-            </div>
-            <div class="comment-box">
-                <input type="text" id="input-Manual_2026.pdf" class="comment-input" placeholder="Add a comment...">
-                <button class="btn-comment" onclick="postComment('Manual_2026.pdf')">Post</button>
-            </div>
+<div class="container">
+    <div class="header-card">
+        <h1><i class="fas fa-book-reader"></i> emalawi19 Library</h1>
+        <div class="stats-grid">
+            <div class="stat-item"><div class="stat-value" id="totalLikes">0</div><div>Total Likes</div></div>
+            <div class="stat-item"><div class="stat-value" id="totalDownloads">0</div><div>Downloads</div></div>
         </div>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search by filename..." onkeyup="filterPDFs()">
     </div>
+
+    <div id="pdfGrid" class="pdf-grid">
+        </div>
 </div>
 
 <script>
+    // --- 1. CONFIGURATION ---
     const API_URL = 'https://script.google.com/macros/s/AKfycbzkIXlNhjp7EUYD1ukjn9laQlzw4SRVdWXBfyqSnaAjfY0v11VxpoiRu9A5F_V_cI2GQw/exec';
+    
+    // REPLACE THESE with your GitHub info
+    const GITHUB_USERNAME = 'emalawi'; 
+    const REPO_NAME = 'School-';
+    const FOLDER_PATH = 'emalawi19'; // The folder where your PDFs are
 
-    // 1. Load data from Google Sheets
-    async function loadData() {
+    let allData = [];
+
+    // --- 2. FETCH DATA ---
+    async function loadLibrary() {
         try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            data.forEach(item => {
-                const el = document.getElementById(`stats-${item.pdfName}`);
-                if (el) el.innerText = `Likes: ${item.likes} | Downloads: ${item.downloads}`;
+            // Fetch file list from GitHub
+            const ghResponse = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FOLDER_PATH}`);
+            const files = await ghResponse.json();
+            const pdfFiles = files.filter(f => f.name.toLowerCase().endsWith('.pdf'));
+
+            // Fetch stats from Google Sheets
+            const sheetResponse = await fetch(API_URL);
+            const sheetStats = await sheetResponse.json();
+
+            // Merge Data
+            allData = pdfFiles.map(file => {
+                const stat = sheetStats.find(s => s.pdfName === file.name) || { likes: 0, downloads: 0, comments: "" };
+                return {
+                    name: file.name,
+                    url: file.download_url,
+                    likes: stat.likes || 0,
+                    downloads: stat.downloads || 0,
+                    comments: stat.comments ? stat.comments.split(' | ') : []
+                };
             });
-        } catch (e) { console.log("Waiting for data..."); }
+
+            renderUI();
+        } catch (err) {
+            console.error("Setup error:", err);
+            // Fallback for testing if GitHub API fails
+            alert("Make sure you update your GitHub Username and Repo Name in the code!");
+        }
     }
 
-    // 2. Send Like/Download
-    async function sendAction(pdfName, action, downloadUrl = null) {
-        if (action === 'download' && downloadUrl) window.open(downloadUrl, '_blank');
+    // --- 3. RENDER UI ---
+    function renderUI() {
+        const grid = document.getElementById('pdfGrid');
+        grid.innerHTML = '';
+        
+        let tLikes = 0;
+        let tDownloads = 0;
 
+        allData.forEach((pdf, index) => {
+            tLikes += pdf.likes;
+            tDownloads += pdf.downloads;
+
+            const card = document.createElement('div');
+            card.className = 'pdf-card';
+            card.innerHTML = `
+                <span class="pdf-name">${pdf.name}</span>
+                <div style="font-size: 0.8rem; color: #888;">
+                    <i class="fas fa-heart"></i> ${pdf.likes} | <i class="fas fa-download"></i> ${pdf.downloads}
+                </div>
+                <div class="action-btns">
+                    <button class="btn-like" onclick="sendAction('${pdf.name}', 'like')">Like</button>
+                    <button class="btn-dl" onclick="sendAction('${pdf.name}', 'download', '${pdf.url}')">Download</button>
+                </div>
+                <div class="comment-section">
+                    <div class="comment-display">${pdf.comments.map(c => `<div>• ${c}</div>`).join('') || 'No comments yet'}</div>
+                    <div class="comment-input-group">
+                        <input type="text" id="comm-${index}" class="comment-input" placeholder="Add comment...">
+                        <button class="btn-comm" onclick="postComment(${index})">Post</button>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        document.getElementById('totalLikes').innerText = tLikes;
+        document.getElementById('totalDownloads').innerText = tDownloads;
+    }
+
+    // --- 4. SEND DATA TO GOOGLE SHEETS ---
+    async function sendAction(pdfName, action, url = null) {
+        if (action === 'download' && url) window.open(url, '_blank');
+
+        document.getElementById('loader').style.display = 'flex';
+        
         await fetch(API_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({ pdfName, action })
         });
-        
-        alert(action + " recorded!");
-        setTimeout(loadData, 1500); // Refresh stats
+
+        // Give Google Sheets time to update before refreshing
+        setTimeout(() => {
+            document.getElementById('loader').style.display = 'none';
+            loadLibrary();
+        }, 1500);
     }
 
-    // 3. Send Comment
-    async function postComment(pdfName) {
-        const input = document.getElementById(`input-${pdfName}`);
+    async function postComment(index) {
+        const pdf = allData[index];
+        const input = document.getElementById(`comm-${index}`);
         if (!input.value) return;
+
+        document.getElementById('loader').style.display = 'flex';
 
         await fetch(API_URL, {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify({ pdfName, action: 'comment', comment: input.value })
+            body: JSON.stringify({ pdfName: pdf.name, action: 'comment', comment: input.value })
         });
 
         input.value = '';
-        alert("Comment posted!");
+        setTimeout(() => {
+            document.getElementById('loader').style.display = 'none';
+            loadLibrary();
+        }, 1500);
     }
 
-    // 4. Search Filter
     function filterPDFs() {
-        const query = document.getElementById('search').value.toLowerCase();
-        const items = document.querySelectorAll('.pdf-item');
-        items.forEach(item => {
-            const name = item.getAttribute('data-name').toLowerCase();
-            item.style.display = name.includes(query) ? "block" : "none";
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.pdf-card');
+        cards.forEach(c => {
+            const name = c.querySelector('.pdf-name').innerText.toLowerCase();
+            c.style.display = name.includes(q) ? 'block' : 'none';
         });
     }
 
-    window.onload = loadData;
+    window.onload = loadLibrary;
 </script>
 
 </body>
