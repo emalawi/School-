@@ -17,7 +17,6 @@
             --secondary: #764ba2;
             --success: #4CAF50;
             --danger: #f44336;
-            --warning: #ff9800;
             --light: #f8f9fa;
             --dark: #333;
         }
@@ -514,7 +513,8 @@
         const GITHUB_REPO = 'School-';
         const PDFS_FOLDER = 'emalawi19';
         
-        // YOUR NEW GOOGLE APPS SCRIPT URL
+        // YOUR GOOGLE APPS SCRIPT WEB APP URL
+        // IMPORTANT: Replace this with your actual Web App URL after deploying
         const GOOGLE_SCRIPT_API = 'https://script.google.com/macros/s/AKfycbwtEzM-YbtdJ38EQ88H1XXa7ok6Vqvz-3T1XlQqmdKaVt3M59R8ojayZB0losPc4zpr7A/exec';
         
         let allPDFs = [];
@@ -647,6 +647,10 @@
                 
                 const files = await response.json();
                 const pdfFiles = files.filter(file => file.name.toLowerCase().endsWith('.pdf'));
+                
+                if (pdfFiles.length === 0) {
+                    throw new Error('No PDF files found in the repository folder');
+                }
                 
                 // Combine PDF files with stats
                 const pdfsWithStats = pdfFiles.map(file => {
