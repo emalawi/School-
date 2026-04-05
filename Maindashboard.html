@@ -559,86 +559,72 @@
         const GITHUB_REPO = 'School-';
         const PDFS_FOLDER = 'emalawi19';
         
+        // ======================== GOOGLE SHEETS API (SheetDB) ========================
+        const SHEETDB_API = 'https://sheetdb.io/api/v1/vt6r3j1baicwe';
+        
         let allPDFs = [];
-        let db = null;
         
-        // Initialize IndexedDB
-        function initDatabase() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open('PDFLibraryDB', 1);
-                
-                request.onerror = function(event) {
-                    console.error('Database error:', event.target.error);
-                    reject(event.target.error);
-                };
-                
-                request.onsuccess = function(event) {
-                    db = event.target.result;
-                    console.log('Database opened successfully');
-                    resolve(db);
-                };
-                
-                request.onupgradeneeded = function(event) {
-                    const db = event.target.result;
-                    
-                    // Create object store for PDF stats
-                    if (!db.objectStoreNames.contains('pdfStats')) {
-                        const store = db.createObjectStore('pdfStats', { keyPath: 'pdfName' });
-                        store.createIndex('downloads', 'downloads', { unique: false });
-                        store.createIndex('likes', 'likes', { unique: false });
-                    }
-                    
-                    console.log('Database created/upgraded');
-                };
-            });
-        }
+        // ---------- PDF Stats Functions (Stored in Google Sheets) ----------
         
-        // Get stats for a PDF
+        // Get stats for a specific PDF from Google Sheets
         async function getPDFStats(pdfName) {
-            return new Promise((resolve) => {
-                if (!db) {
-                    resolve({ pdfName: pdfName, downloads: 0, likes: 0, comments: [] });
-                    return;
+            try {
+                const response = await fetch(`${SHEETDB_API}/search?pdfName=${encodeURIComponent(pdfName)}`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return {
+                        pdfName: pdfName,
+                        downloads: parseInt(data[0].Downloads) || 0,
+                        likes: parseInt(data[0].Likes) || 0,
+                        comments: data[0].Comments ? JSON.parse(data[0].Comments) : []
+                    };
                 }
-                
-                const transaction = db.transaction(['pdfStats'], 'readonly');
-                const store = transaction.objectStore('pdfStats');
-                const request = store.get(pdfName);
-                
-                request.onsuccess = function(event) {
-                    if (request.result) {
-                        resolve(request.result);
-                    } else {
-                        resolve({ pdfName: pdfName, downloads: 0, likes: 0, comments: [] });
-                    }
-                };
-                
-                request.onerror = function() {
-                    resolve({ pdfName: pdfName, downloads: 0, likes: 0, comments: [] });
-                };
-            });
+            } catch (error) {
+                console.log('Fetching stats, might need to create entry');
+            }
+            return { pdfName: pdfName, downloads: 0, likes: 0, comments: [] };
         }
         
-        // Save stats for a PDF
+        // Save or update PDF stats to Google Sheets
         async function savePDFStats(stats) {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject('Database not initialized');
-                    return;
+            try {
+                // First check if entry exists
+                const checkResponse = await fetch(`${SHEETDB_API}/search?pdfName=${encodeURIComponent(stats.pdfName)}`);
+                const existing = await checkResponse.json();
+                
+                if (existing && existing.length > 0) {
+                    // Update existing row
+                    await fetch(`${SHEETDB_API}/pdfName/${encodeURIComponent(stats.pdfName)}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            Downloads: stats.downloads,
+                            Likes: stats.likes,
+                            Comments: JSON.stringify(stats.comments),
+                            LastUpdated: new Date().toISOString()
+                        })
+                    });
+                } else {
+                    // Create new row
+                    await fetch(SHEETDB_API, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            data: {
+                                pdfName: stats.pdfName,
+                                Downloads: stats.downloads,
+                                Likes: stats.likes,
+                                Comments: JSON.stringify(stats.comments),
+                                LastUpdated: new Date().toISOString()
+                            }
+                        })
+                    });
                 }
-                
-                const transaction = db.transaction(['pdfStats'], 'readwrite');
-                const store = transaction.objectStore('pdfStats');
-                const request = store.put(stats);
-                
-                request.onsuccess = function() {
-                    resolve();
-                };
-                
-                request.onerror = function() {
-                    reject(request.error);
-                };
-            });
+                return true;
+            } catch (error) {
+                console.error('Error saving to Google Sheets:', error);
+                return false;
+            }
         }
         
         // Update download count
@@ -658,49 +644,45 @@
         }
         
         // Add comment
-        async function addCommentToPDF(pdfName, commentText) {
+        async function addCommentToPDF(pdfName, commentText, userName = 'Guest') {
             const stats = await getPDFStats(pdfName);
             if (!stats.comments) stats.comments = [];
             stats.comments.push({
                 text: commentText,
                 timestamp: Date.now(),
-                user: 'User'
+                user: userName
             });
             await savePDFStats(stats);
             return stats.comments;
         }
         
-        // Get all stats for summary
+        // Get all stats for summary from Google Sheets
         async function getAllStats() {
-            return new Promise((resolve) => {
-                if (!db) {
-                    resolve({ totalDownloads: 0, totalLikes: 0, totalComments: 0 });
-                    return;
-                }
+            try {
+                const response = await fetch(SHEETDB_API);
+                const allStats = await response.json();
+                let totalDownloads = 0;
+                let totalLikes = 0;
+                let totalComments = 0;
                 
-                const transaction = db.transaction(['pdfStats'], 'readonly');
-                const store = transaction.objectStore('pdfStats');
-                const request = store.getAll();
+                allStats.forEach(stat => {
+                    if (stat.pdfName && stat.pdfName !== 'pdfName') {
+                        totalDownloads += parseInt(stat.Downloads) || 0;
+                        totalLikes += parseInt(stat.Likes) || 0;
+                        if (stat.Comments) {
+                            try {
+                                const comments = JSON.parse(stat.Comments);
+                                totalComments += comments.length;
+                            } catch(e) {}
+                        }
+                    }
+                });
                 
-                request.onsuccess = function() {
-                    const allStats = request.result || [];
-                    let totalDownloads = 0;
-                    let totalLikes = 0;
-                    let totalComments = 0;
-                    
-                    allStats.forEach(stat => {
-                        totalDownloads += stat.downloads || 0;
-                        totalLikes += stat.likes || 0;
-                        totalComments += (stat.comments || []).length;
-                    });
-                    
-                    resolve({ totalDownloads, totalLikes, totalComments });
-                };
-                
-                request.onerror = function() {
-                    resolve({ totalDownloads: 0, totalLikes: 0, totalComments: 0 });
-                };
-            });
+                return { totalDownloads, totalLikes, totalComments };
+            } catch (error) {
+                console.error('Error getting totals:', error);
+                return { totalDownloads: 0, totalLikes: 0, totalComments: 0 };
+            }
         }
         
         // Load PDFs from GitHub
@@ -729,7 +711,7 @@
                 const files = await response.json();
                 const pdfFiles = files.filter(file => file.name.toLowerCase().endsWith('.pdf'));
                 
-                // Get stats for each PDF from IndexedDB
+                // Get stats for each PDF from Google Sheets
                 const pdfsWithStats = await Promise.all(pdfFiles.map(async (file) => {
                     const stats = await getPDFStats(file.name);
                     return {
@@ -788,6 +770,11 @@
             }
         }
         
+        // Get current logged-in user
+        function getCurrentUser() {
+            return localStorage.getItem('loggedInUser') || 'Guest';
+        }
+        
         // Display PDFs
         function displayPDFs(pdfs) {
             const pdfGrid = document.getElementById('pdfGrid');
@@ -797,6 +784,7 @@
                 const card = document.createElement('div');
                 card.className = 'pdf-card';
                 const fileSize = (pdf.size / 1024).toFixed(2);
+                const currentUser = getCurrentUser();
                 
                 card.innerHTML = `
                     <div class="pdf-icon">
@@ -835,11 +823,12 @@
                                 <div class="comment">
                                     <div class="comment-user">👤 ${escapeHtml(comment.user || 'User')}</div>
                                     <div class="comment-text">${escapeHtml(comment.text)}</div>
+                                    <div style="font-size: 10px; color: #999;">${new Date(comment.timestamp).toLocaleString()}</div>
                                 </div>
                             `).join('')}
                         </div>
                         <div class="comment-input-section">
-                            <input type="text" class="comment-input" id="comment-input-${index}" placeholder="Add a comment..." maxlength="200">
+                            <input type="text" class="comment-input" id="comment-input-${index}" placeholder="Add a comment as ${currentUser}..." maxlength="200">
                             <button class="comment-submit" onclick="addComment('${escapeHtml(pdf.name)}', ${index})">
                                 Post
                             </button>
@@ -892,6 +881,7 @@
         async function addComment(pdfName, cardIndex) {
             const commentInput = document.getElementById(`comment-input-${cardIndex}`);
             const commentText = commentInput.value.trim();
+            const currentUser = getCurrentUser();
             
             if (!commentText) {
                 alert('Please enter a comment.');
@@ -899,7 +889,7 @@
             }
             
             try {
-                await addCommentToPDF(pdfName, commentText);
+                await addCommentToPDF(pdfName, commentText, currentUser);
                 await updateTotalStats();
                 commentInput.value = '';
                 loadPDFs();
@@ -924,12 +914,26 @@
             return div.innerHTML;
         }
         
+        // Initialize Google Sheets structure (create headers if needed)
+        async function initGoogleSheetsStructure() {
+            try {
+                // Check if sheet has data, if not, we'll create on first save
+                const response = await fetch(SHEETDB_API);
+                const data = await response.json();
+                if (!data || data.length === 0 || (data.length === 1 && !data[0].pdfName)) {
+                    console.log('Sheet ready for data');
+                }
+            } catch (error) {
+                console.log('Sheet initialization:', error);
+            }
+        }
+        
         // Initialize
         async function init() {
-            await initDatabase();
+            await initGoogleSheetsStructure();
             await loadPDFs();
             
-            // Update online count (simple counter)
+            // Update online count
             let onlineCount = localStorage.getItem('onlineCount') || 1;
             document.getElementById('onlineCount').textContent = onlineCount;
             
