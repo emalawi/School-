@@ -1,153 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDF Library</title>
-
-<style>
-body { font-family: Arial; background:#667eea; padding:20px; color:white; }
-.container { max-width:900px; margin:auto; }
-input, button { padding:10px; margin:5px; }
-.card { background:white; color:black; padding:15px; margin:10px 0; border-radius:10px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input {
+            padding: 8px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 8px 12px;
+        }
+        ul {
+            margin-top: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        a {
+            text-decoration: none;
+            color: blue;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
-
 <body>
-<div class="container">
+    <h1>PDF Search</h1>
+    <input type="text" id="searchInput" placeholder="Search PDFs">
+    <button onclick="searchPDF()">Search</button>
+    <ul id="pdfList"></ul>
 
-<h1>📚 PDF Library</h1>
+    <script>
+        const OWNER = "emalawi";
+        const REPO = "School-";
+        const FOLDER = "emalawi19";
 
-<input type="text" id="search" placeholder="Search PDFs">
-<button onclick="loadPDFs()">Search</button>
+        async function fetchPDFs() {
+            try {
+                const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FOLDER}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                // Filter only PDF files
+                return data.filter(file => file.name.toLowerCase().endsWith(".pdf"));
+            } catch (error) {
+                console.error("Error fetching PDFs:", error);
+                alert("Failed to fetch PDFs. Check console for details.");
+                return [];
+            }
+        }
 
-<div id="pdfList"></div>
+        function displayPDFs(pdfs) {
+            const list = document.getElementById("pdfList");
+            list.innerHTML = "";
+            if (pdfs.length === 0) {
+                list.innerHTML = "<li>No PDFs found</li>";
+                return;
+            }
+            pdfs.forEach(pdf => {
+                const li = document.createElement("li");
+                li.innerHTML = `<a href="${pdf.download_url}" target="_blank">${pdf.name}</a>`;
+                list.appendChild(li);
+            });
+        }
 
-</div>
+        async function searchPDF() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            const pdfs = await fetchPDFs();
+            const filtered = pdfs.filter(pdf => pdf.name.toLowerCase().includes(query));
+            displayPDFs(filtered);
+        }
 
-<script>
-
-// ================= CONFIG =================
-const API = "https://script.google.com/macros/s/AKfycbwtEzM-YbtdJ38EQ88H1XXa7ok6Vqvz-3T1XlQqmdKaVt3M59R8ojayZB0losPc4zpr7A/exec";
-
-const OWNER = "emalawi";
-const REPO = "School-";
-const FOLDER = "emalawi19";
-
-let stats = {};
-
-// ================= HELPERS =================
-function escapeHtml(text){
-  return text.replace(/[&<>"']/g,m=>({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  })[m]);
-}
-
-// ================= API =================
-async function getStats(){
-  const res = await fetch(API + "?action=getAll");
-  const data = await res.json();
-
-  stats = {};
-  data.forEach(r=>{
-    if(r.pdfName){
-      stats[r.pdfName]={
-        downloads:parseInt(r.Downloads)||0,
-        likes:parseInt(r.Likes)||0,
-        comments: JSON.parse(r.Comments||"[]")
-      }
-    }
-  });
-}
-
-async function updateStats(name,s){
-  await fetch(API+
-    `?action=updateStats&pdfName=${encodeURIComponent(name)}&downloads=${s.downloads}&likes=${s.likes}&comments=${encodeURIComponent(JSON.stringify(s.comments))}`
-  );
-}
-
-// ================= MAIN =================
-async function loadPDFs(){
-
-  document.getElementById("pdfList").innerHTML="Loading...";
-
-  await getStats();
-
-  const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FOLDER}`);
-  const files = await res.json();
-
-  const search = document.getElementById("search").value.toLowerCase();
-
-  let html="";
-
-  files
-  .filter(f=>f.name.endsWith(".pdf"))
-  .filter(f=>f.name.toLowerCase().includes(search))
-  .forEach(f=>{
-
-    let s = stats[f.name] || {downloads:0,likes:0,comments:[]};
-
-    html+=`
-    <div class="card">
-      <h3>${escapeHtml(f.name)}</h3>
-
-      <p>⬇ ${s.downloads} | ❤️ ${s.likes} | 💬 ${s.comments.length}</p>
-
-      <button onclick="download('${f.name}','${f.download_url}')">Download</button>
-      <button onclick="like('${f.name}')">Like</button>
-
-      <div>
-        ${s.comments.map(c=>`<p><b>${escapeHtml(c.user)}</b>: ${escapeHtml(c.text)}</p>`).join("")}
-      </div>
-
-      <input id="c-${f.name}" placeholder="comment">
-      <button onclick="comment('${f.name}')">Post</button>
-
-    </div>`;
-  });
-
-  document.getElementById("pdfList").innerHTML = html || "No PDFs found";
-}
-
-// ================= ACTIONS =================
-async function download(name,url){
-  let s = stats[name] || {downloads:0,likes:0,comments:[]};
-  s.downloads++;
-  await updateStats(name,s);
-
-  window.open(url);
-  loadPDFs();
-}
-
-async function like(name){
-  let s = stats[name] || {downloads:0,likes:0,comments:[]};
-  s.likes++;
-  await updateStats(name,s);
-  loadPDFs();
-}
-
-async function comment(name){
-  const input = document.getElementById("c-"+name);
-  const text = input.value.trim();
-  if(!text) return;
-
-  let s = stats[name] || {downloads:0,likes:0,comments:[]};
-  s.comments.push({
-    user:"Guest",
-    text:text,
-    time:Date.now()
-  });
-
-  await updateStats(name,s);
-
-  input.value="";
-  loadPDFs();
-}
-
-// AUTO LOAD
-loadPDFs();
-
-</script>
-
+        // Load all PDFs on page load
+        fetchPDFs().then(displayPDFs);
+    </script>
 </body>
 </html>
