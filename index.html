@@ -2,711 +2,177 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>EduHub | Login & Register</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Register System</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-
+        /* General Page Styling */
         body {
-            background: #0a0f1e;
-            color: #eef2ff;
-            scroll-behavior: smooth;
-        }
-
-        /* Color palette: Black(#0a0f1e), Green(#10b981), Blue(#3b82f6), White(#ffffff) */
-        :root {
-            --bg-dark: #0a0f1e;
-            --card-bg: #111827;
-            --green-accent: #10b981;
-            --blue-accent: #3b82f6;
-            --white: #ffffff;
-            --gray-light: #e5e7eb;
-            --border-dim: #1f2937;
+            background-color: white;
+            color: black;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
 
         .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 20px 24px;
+            text-align: center;
+            width: 320px;
+            padding: 30px;
+            border: 2px solid #eeeeee;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        /* header */
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 40px;
-            background: var(--card-bg);
-            padding: 16px 28px;
-            border-radius: 60px;
-            border: 1px solid var(--border-dim);
-            backdrop-filter: blur(2px);
-        }
-        .logo h2 {
-            color: var(--white);
-            font-weight: 700;
-        }
-        .logo span {
-            color: var(--blue-accent);
-        }
-        .nav-links {
-            display: flex;
-            gap: 28px;
-        }
-        .nav-links a {
-            color: var(--gray-light);
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-        .nav-links a:hover { color: var(--blue-accent); }
-
-        /* trending section */
-        .section-title {
-            font-size: 1.9rem;
-            font-weight: 700;
-            margin: 40px 0 24px 0;
-            border-left: 5px solid var(--green-accent);
-            padding-left: 20px;
-        }
-        .trending-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 28px;
-            justify-content: center;
-        }
-        .trend-card {
-            background: var(--card-bg);
-            border-radius: 32px;
-            padding: 20px 24px;
-            width: 280px;
-            transition: transform 0.25s ease, box-shadow 0.3s;
-            border: 1px solid #2d3748;
-            backdrop-filter: blur(4px);
-        }
-        .trend-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 30px -12px rgba(59,130,246,0.25);
-            border-color: var(--blue-accent);
-        }
-        .pdf-icon-badge {
-            font-size: 2.8rem;
-            color: var(--blue-accent);
-            margin-bottom: 12px;
-        }
-        .trend-title {
-            font-weight: 700;
-            font-size: 1.2rem;
-            margin: 10px 0 6px;
-            color: white;
-        }
-        .trend-stats {
-            display: flex;
-            justify-content: space-between;
-            margin: 16px 0;
-            font-size: 0.85rem;
-            background: #1e293b;
-            padding: 8px 12px;
-            border-radius: 40px;
-        }
-        .trend-stats span i {
-            margin-right: 6px;
-        }
-        .date-badge {
-            font-size: 0.7rem;
-            color: #9ca3af;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-download-trend {
-            background: var(--green-accent);
-            border: none;
-            padding: 8px 14px;
-            border-radius: 40px;
-            font-weight: 600;
-            color: #0a0f1e;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 12px;
-            transition: 0.2s;
-        }
-        .btn-download-trend:hover {
-            background: #0e9f6e;
-            transform: scale(0.97);
-        }
-
-        /* animated encouragement + pictures */
-        .encourage-section {
-            background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
-            border-radius: 48px;
-            margin: 60px 0;
-            padding: 40px 30px;
-            border: 1px solid #1e293b;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .animated-text {
-            flex: 1.2;
-        }
-        .animated-text h3 {
-            font-size: 2rem;
-            background: linear-gradient(135deg, #fff, var(--blue-accent), var(--green-accent));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+        h2 {
             margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .typing-effect {
-            font-size: 1.3rem;
-            font-weight: 500;
-            border-right: 3px solid var(--green-accent);
-            white-space: normal;
-            display: inline-block;
-            animation: blinkCursor 0.75s step-end infinite;
-        }
-        @keyframes blinkCursor {
-            50% { border-color: transparent; }
-        }
-        .motivation-text {
-            margin-top: 20px;
-            color: #cbd5e6;
-            line-height: 1.5;
-        }
-        .student-pics {
-            flex: 1;
-            display: flex;
-            gap: 18px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .student-card {
-            background: #1e293b;
-            border-radius: 28px;
+
+        input {
+            width: 100%;
             padding: 12px;
-            text-align: center;
-            width: 140px;
-            transition: all 0.3s;
-        }
-        .student-card i {
-            font-size: 3.2rem;
-            color: var(--blue-accent);
-        }
-        .student-card p {
-            margin-top: 8px;
-            font-size: 0.8rem;
-            font-weight: 500;
+            margin: 10px 0;
+            border: 1px solid black;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
         }
 
-        /* login / register card */
-        .auth-section {
-            background: var(--card-bg);
-            border-radius: 48px;
-            padding: 40px 30px;
-            margin: 50px 0;
-            border: 1px solid #2d3a4e;
-            box-shadow: 0 25px 40px -12px rgba(0,0,0,0.4);
-        }
-        .auth-container {
-            max-width: 500px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .toggle-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-        .toggle-btn {
-            background: transparent;
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: blue;
+            color: white;
             border: none;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #9ca3af;
+            border-radius: 4px;
             cursor: pointer;
-            padding: 8px 18px;
-            border-radius: 40px;
-            transition: 0.2s;
-        }
-        .toggle-btn.active {
-            color: var(--white);
-            background: var(--blue-accent);
-            box-shadow: 0 4px 12px rgba(59,130,246,0.4);
-        }
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .auth-input {
-            background: #1e293b;
-            border: 1px solid #334155;
-            padding: 14px 18px;
-            border-radius: 60px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-        }
-        .auth-input:focus {
-            border-color: var(--blue-accent);
-        }
-        .pattern-hint {
-            font-size: 0.75rem;
-            color: #9ca3af;
-            letter-spacing: 2px;
-            margin: -10px 0 5px;
-        }
-        .auth-btn {
-            background: var(--blue-accent);
-            color: white;
             font-weight: bold;
-            border: none;
-            padding: 14px;
-            border-radius: 60px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
         }
-        .auth-btn:hover {
-            background: #2563eb;
-            transform: scale(0.98);
+
+        button:hover {
+            background-color: darkblue;
         }
-        .auth-message {
+
+        .toggle-link {
             margin-top: 20px;
-            color: #facc15;
-            font-size: 0.85rem;
-        }
-        .black-text-note {
-            color: black;
-            background: white;
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            margin-top: 16px;
+            font-size: 0.85em;
+            cursor: pointer;
+            color: blue;
+            text-decoration: underline;
         }
 
-        /* contact part */
-        .contact-section {
-            background: #0f172a;
-            border-radius: 40px;
-            padding: 40px 30px;
-            margin-top: 30px;
-            margin-bottom: 40px;
-            border: 1px solid #2d3748;
-        }
-        .contact-flex {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 40px;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .contact-info h3 {
-            font-size: 1.7rem;
-            margin-bottom: 15px;
-        }
-        .contact-details p {
-            margin: 12px 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .social-icons a {
-            color: var(--white);
-            margin-right: 20px;
-            font-size: 1.6rem;
-            transition: 0.2s;
-        }
-        .social-icons a:hover { color: var(--blue-accent); }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 0.8rem;
-            border-top: 1px solid #1e293b;
+        .hidden {
+            display: none;
         }
 
-        button { cursor: pointer; }
-        @media (max-width: 700px) {
-            .top-nav { flex-direction: column; text-align: center; }
-            .trend-card { width: 100%; }
+        /* Status message styling */
+        #message {
+            margin-top: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- navigation -->
-    <div class="top-nav">
-        <div class="logo"><h2>📘 <span>Edu</span>Sphere</h2></div>
-        <div class="nav-links">
-            <a href="#">Trending</a>
-            <a href="#">Inspire</a>
-            <a href="#">Join</a>
-            <a href="#">Contact</a>
+    <div class="container">
+        <div id="login-form">
+            <h2>Login</h2>
+            <input type="text" id="login-user" placeholder="Username">
+            <input type="password" id="login-pass" placeholder="Password">
+            <button onclick="handleLogin()">LOGIN</button>
+            <p class="toggle-link" onclick="toggleForms()">Don't have an account? Register</p>
         </div>
+
+        <div id="register-form" class="hidden">
+            <h2>Register</h2>
+            <input type="text" id="reg-user" placeholder="Username">
+            <input type="password" id="reg-pass" placeholder="Password">
+            <button onclick="handleRegister()">REGISTER</button>
+            <p class="toggle-link" onclick="toggleForms()">Already registered? Login</p>
+        </div>
+
+        <div id="message"></div>
     </div>
 
-    <!-- TRENDING PDFs section (round corner, dynamic data) -->
-    <div class="section-title"><i class="fas fa-chart-line" style="color:var(--green-accent); margin-right: 12px;"></i> 🔥 Trending PDFs on Platform</div>
-    <div id="trendingContainer" class="trending-grid">
-        <!-- JS will inject trending PDFs with dates, likes, downloads -->
-    </div>
+    <script>
+        // Your specific Google Apps Script Web App URL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxUTFWndFScFRaDv14vbkaVlN7DdEUyJPfozs9OFq_opc2ofJuiUhFBxshm9Dv5qnxGw/exec";
 
-    <!-- Animated text + student pictures -->
-    <div class="encourage-section">
-        <div class="animated-text">
-            <h3>✨ Knowledge is Power ✨</h3>
-            <div class="typing-effect" id="dynamicMessage"></div>
-            <div class="motivation-text">School builds character, curiosity, and courage. Every book opens a new universe. Stay curious, stay inspired!</div>
-        </div>
-        <div class="student-pics">
-            <div class="student-card"><i class="fas fa-graduation-cap"></i><p>Fatima, Engineer</p></div>
-            <div class="student-card"><i class="fas fa-microscope"></i><p>James, Researcher</p></div>
-            <div class="student-card"><i class="fas fa-chalkboard-user"></i><p>Elena, Teacher</p></div>
-            <div class="student-card"><i class="fas fa-rocket"></i><p>Michael, Astronaut</p></div>
-        </div>
-    </div>
-
-    <!-- LOGIN / REGISTER section (white text, blue button, black text present at sent center) -->
-    <div class="auth-section" id="authSection">
-        <div class="auth-container">
-            <div class="toggle-buttons">
-                <button class="toggle-btn active" id="loginTabBtn">🔐 Login</button>
-                <button class="toggle-btn" id="registerTabBtn">📝 Register</button>
-            </div>
-            <!-- Login Form -->
-            <div id="loginForm">
-                <div class="auth-form">
-                    <input type="text" id="loginUsername" class="auth-input" placeholder="Username" autocomplete="off">
-                    <input type="password" id="loginPassword" class="auth-input" placeholder="Password">
-                    <div class="pattern-hint"><i class="fas fa-shield-alt"></i> pattern: ●●●●●●●●● (any valid)</div>
-                    <button id="doLoginBtn" class="auth-btn"><i class="fas fa-sign-in-alt"></i> Login</button>
-                </div>
-            </div>
-            <!-- Register Form (hidden initially) -->
-            <div id="registerForm" style="display:none;">
-                <div class="auth-form">
-                    <input type="text" id="regUsername" class="auth-input" placeholder="Choose Username">
-                    <input type="password" id="regPassword" class="auth-input" placeholder="Create Password">
-                    <div class="pattern-hint">✨ pattern can be any combination (letters/numbers)</div>
-                    <button id="doRegisterBtn" class="auth-btn"><i class="fas fa-user-plus"></i> Register</button>
-                </div>
-            </div>
-            <div id="authMessage" class="auth-message"></div>
-            <div class="black-text-note"><span style="color:black;">⚡ Live Google Sheets Integration ⚡</span></div>
-        </div>
-    </div>
-
-    <!-- Contact part -->
-    <div class="contact-section">
-        <div class="contact-flex">
-            <div class="contact-info">
-                <h3><i class="fas fa-envelope-open-text"></i> Contact Us</h3>
-                <div class="contact-details">
-                    <p><i class="fas fa-map-marker-alt" style="color:var(--green-accent);"></i> 123 Knowledge Street, Silicon Valley</p>
-                    <p><i class="fas fa-phone-alt"></i> +1 (800) 234-EDU</p>
-                    <p><i class="fas fa-envelope"></i> hello@edusphere.com</p>
-                </div>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin"></i></a>
-                    <a href="#"><i class="fab fa-github"></i></a>
-                </div>
-            </div>
-            <div style="flex:1;">
-                <p style="font-style:italic;">"Education is the most powerful weapon which you can use to change the world." – Nelson Mandela</p>
-                <div style="margin-top:20px; background:#0f172a; border-radius:60px; padding:12px 20px;">
-                    <i class="fas fa-headset"></i> Support 24/7 – we reply within hours.
-                </div>
-            </div>
-        </div>
-    </div>
-    <footer>© 2025 EduSphere — Empowering minds through open knowledge.</footer>
-</div>
-
-<script>
-    // ======================== GOOGLE SHEETS INTEGRATION VIA SHEETDB ========================
-    // YOUR UNIQUE SHEETDB API URL (connected to your Google Sheet)
-    const SHEETDB_API = 'https://sheetdb.io/api/v1/vt6r3j1baicwe';
-    
-    // MAIN DASHBOARD URL - after successful login/register, user goes here
-    const MAIN_DASHBOARD_URL = 'https://emalawi.github.io/School-/Maindashboard.html';
-    
-    // ---------- Google Sheets Read (find user) ----------
-    async function googleSheetFindUser(username) {
-        try {
-            const response = await fetch(SHEETDB_API);
-            if (!response.ok) throw new Error('Failed to fetch users');
-            const users = await response.json();
-            const found = users.find(u => u.Username === username);
-            return found ? { username: found.Username, password: found.Password } : null;
-        } catch (error) {
-            console.error('SheetDB read error:', error);
-            return null;
+        function showMessage(text, color) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerText = text;
+            msgDiv.style.color = color;
         }
-    }
-    
-    // ---------- Google Sheets Write (register new user) ----------
-    async function googleSheetRegisterUser(username, password) {
-        // First check if user already exists
-        const exists = await googleSheetFindUser(username);
-        if (exists) {
-            return { success: false, message: "❌ Username already exists. Please choose another." };
-        }
-        
-        try {
-            const response = await fetch(SHEETDB_API, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    data: {
-                        Username: username,
-                        Password: password,
-                        RegisteredAt: new Date().toISOString().split('T')[0] // YYYY-MM-DD
-                    }
-                })
-            });
-            
-            if (response.ok) {
-                return { success: true, message: "✅ Registration successful! Redirecting to dashboard..." };
-            } else {
-                const errorData = await response.json();
-                console.error('Registration error:', errorData);
-                return { success: false, message: "⚠️ Registration failed. Please try again." };
+
+        async function handleLogin() {
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+
+            if (!user || !pass) {
+                return showMessage("Please fill in all fields", "red");
             }
-        } catch (error) {
-            console.error('Network error during registration:', error);
-            return { success: false, message: "🌐 Network error. Check your connection." };
-        }
-    }
-    
-    // ---------- Google Sheets Login ----------
-    async function googleSheetLoginUser(username, password) {
-        const user = await googleSheetFindUser(username);
-        if (user && user.password === password) {
-            return { success: true, message: "Login verified. Redirecting to dashboard." };
-        } else if (user && user.password !== password) {
-            return { success: false, message: "🔐 Incorrect password. Please try again." };
-        } else {
-            return { success: false, message: "📝 User not found. Please register first." };
-        }
-    }
-    
-    // -------------------- TRENDING PDFs (local storage for engagement) --------------------
-    let trendingPDFs = [
-        { id: 1, name: "AI_in_Education_Guide.pdf", downloads: 324, likes: 189, comments: 45, date: "2025-02-18", sizeKB: 2450 },
-        { id: 2, name: "Calculus_Essentials.pdf", downloads: 512, likes: 302, comments: 78, date: "2025-02-20", sizeKB: 3890 },
-        { id: 3, name: "World_History_Atlas.pdf", downloads: 278, likes: 154, comments: 32, date: "2025-02-15", sizeKB: 5120 },
-        { id: 4, name: "Python_Data_Science.pdf", downloads: 678, likes: 410, comments: 112, date: "2025-02-22", sizeKB: 4100 }
-    ];
 
-    function loadTrendingInteractions() {
-        const stored = localStorage.getItem("trendingStats");
-        if(stored) {
-            let saved = JSON.parse(stored);
-            trendingPDFs = trendingPDFs.map(pdf => {
-                let found = saved.find(s => s.id === pdf.id);
-                if(found) {
-                    return {...pdf, downloads: found.downloads, likes: found.likes, comments: found.comments};
-                }
-                return pdf;
-            });
-        }
-        renderTrending();
-    }
-    function saveTrendingStats() {
-        let toStore = trendingPDFs.map(p => ({ id: p.id, downloads: p.downloads, likes: p.likes, comments: p.comments }));
-        localStorage.setItem("trendingStats", JSON.stringify(toStore));
-    }
-    function incrementDownloadTrend(id) {
-        let pdf = trendingPDFs.find(p => p.id === id);
-        if(pdf) { pdf.downloads += 1; saveTrendingStats(); renderTrending(); }
-    }
-    function incrementLikeTrend(id) {
-        let pdf = trendingPDFs.find(p => p.id === id);
-        if(pdf) { pdf.likes += 1; saveTrendingStats(); renderTrending(); }
-    }
-    function addCommentTrend(id, commentText) {
-        if(!commentText.trim()) return;
-        let pdf = trendingPDFs.find(p => p.id === id);
-        if(pdf) { pdf.comments += 1; saveTrendingStats(); renderTrending(); }
-        alert("💬 Comment added! (+1 comment count)");
-    }
+            showMessage("Checking credentials...", "black");
 
-    function renderTrending() {
-        const container = document.getElementById('trendingContainer');
-        if(!container) return;
-        container.innerHTML = trendingPDFs.map(pdf => `
-            <div class="trend-card">
-                <div class="pdf-icon-badge"><i class="fas fa-file-pdf"></i></div>
-                <div class="trend-title">${escapeHtml(pdf.name)}</div>
-                <div class="trend-stats">
-                    <span><i class="fas fa-download"></i> ${pdf.downloads}</span>
-                    <span><i class="fas fa-heart" style="color:#f97316;"></i> ${pdf.likes}</span>
-                    <span><i class="fas fa-comment"></i> ${pdf.comments}</span>
-                </div>
-                <div class="date-badge"><i class="far fa-calendar-alt"></i> Added: ${pdf.date} <i class="fas fa-chart-simple"></i> trending</div>
-                <div style="display:flex; gap:10px; margin: 10px 0;">
-                    <button class="btn-download-trend" style="background:var(--blue-accent); margin:0;" onclick="event.stopPropagation(); downloadTrendAction(${pdf.id})"><i class="fas fa-download"></i> Get</button>
-                    <button class="btn-download-trend" style="background:#334155;" onclick="event.stopPropagation(); likeTrendAction(${pdf.id})"><i class="fas fa-thumbs-up"></i> Like</button>
-                </div>
-                <div style="display:flex; gap:6px; margin-top:8px;">
-                    <input type="text" id="commentInput-${pdf.id}" placeholder="Add comment..." style="flex:1; background:#0f172a; border:1px solid #334155; border-radius:30px; padding:8px 12px; color:white;">
-                    <button onclick="event.stopPropagation(); addCommentTrendAction(${pdf.id})" style="background:var(--green-accent); border:none; border-radius:30px; padding:0 12px; color:black;">Post</button>
-                </div>
-            </div>
-        `).join('');
-    }
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors", // Required for Google Scripts in some environments
+                    body: JSON.stringify({ action: "login", username: user, password: pass })
+                });
 
-    window.downloadTrendAction = (id) => { incrementDownloadTrend(id); alert("📄 Download started (simulated)."); };
-    window.likeTrendAction = (id) => { incrementLikeTrend(id); };
-    window.addCommentTrendAction = (id) => {
-        let input = document.getElementById(`commentInput-${id}`);
-        let val = input ? input.value : "";
-        addCommentTrend(id, val);
-        if(input) input.value = "";
-    };
-    function escapeHtml(str) { 
-        if(!str) return '';
-        return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); 
-    }
+                // Since "no-cors" doesn't allow reading the body, 
+                // we'll assume success if the browser doesn't throw an error, 
+                // OR ideally, use a standard Fetch if your Script permits CORS.
+                
+                // Note: For a real app, you'd use result = await response.text();
+                // But Google Apps Script CORS can be tricky.
+                
+                alert("Login request sent. If credentials are correct, check your redirect logic!");
+                window.location.href = "https://www.google.com"; 
 
-    // -------------------- UI LOGIC for Login/Register with REDIRECT to MAIN DASHBOARD --------------------
-    const loginFormDiv = document.getElementById('loginForm');
-    const registerFormDiv = document.getElementById('registerForm');
-    const loginTab = document.getElementById('loginTabBtn');
-    const registerTab = document.getElementById('registerTabBtn');
-    const authMsg = document.getElementById('authMessage');
-    const authSection = document.getElementById('authSection');
-
-    loginTab.addEventListener('click', () => {
-        loginTab.classList.add('active'); 
-        registerTab.classList.remove('active');
-        loginFormDiv.style.display = 'block'; 
-        registerFormDiv.style.display = 'none';
-        authMsg.innerHTML = '';
-    });
-    registerTab.addEventListener('click', () => {
-        registerTab.classList.add('active'); 
-        loginTab.classList.remove('active');
-        loginFormDiv.style.display = 'none'; 
-        registerFormDiv.style.display = 'block';
-        authMsg.innerHTML = '';
-    });
-
-    // Function to redirect to Main Dashboard
-    function redirectToDashboard() {
-        // Store login state in localStorage for the dashboard to recognize
-        localStorage.setItem('isLoggedIn', 'true');
-        // Redirect to the Main Dashboard URL
-        window.location.href = MAIN_DASHBOARD_URL;
-    }
-
-    // LOGIN action - redirects to Main Dashboard on success
-    document.getElementById('doLoginBtn').addEventListener('click', async () => {
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value.trim();
-        if(!username || !password) { 
-            authMsg.innerHTML = "⚠️ Please fill both username and password."; 
-            return; 
-        }
-        authMsg.innerHTML = "🔄 Checking credentials with Google Sheet...";
-        let result = await googleSheetLoginUser(username, password);
-        if(result.success) {
-            authMsg.style.color = "#4ade80";
-            authMsg.innerHTML = "✅ Login successful! Redirecting to Main Dashboard...";
-            // Store the logged-in username
-            localStorage.setItem("loggedInUser", username);
-            localStorage.setItem("isLoggedIn", "true");
-            // Redirect to Main Dashboard after short delay
-            setTimeout(() => {
-                redirectToDashboard();
-            }, 1000);
-        } else {
-            authMsg.style.color = "#f87171";
-            authMsg.innerHTML = result.message;
-        }
-    });
-    
-    // REGISTER action - redirects to Main Dashboard on success
-    document.getElementById('doRegisterBtn').addEventListener('click', async () => {
-        const username = document.getElementById('regUsername').value.trim();
-        const password = document.getElementById('regPassword').value.trim();
-        if(!username || !password) { 
-            authMsg.innerHTML = "⚠️ Username and password required."; 
-            return; 
-        }
-        authMsg.innerHTML = "🔄 Registering, checking Google Sheet...";
-        let result = await googleSheetRegisterUser(username, password);
-        if(result.success) {
-            authMsg.style.color = "#86efac";
-            authMsg.innerHTML = result.message;
-            // Store the newly registered user as logged in
-            localStorage.setItem("loggedInUser", username);
-            localStorage.setItem("isLoggedIn", "true");
-            // Redirect to Main Dashboard after short delay
-            setTimeout(() => {
-                redirectToDashboard();
-            }, 1000);
-        } else {
-            authMsg.style.color = "#fca5a5";
-            authMsg.innerHTML = result.message;
-        }
-    });
-    
-    // Check if user is already logged in (from previous session)
-    function checkExistingSession() {
-        let logged = localStorage.getItem("loggedInUser");
-        let isLogged = localStorage.getItem("isLoggedIn");
-        if(logged && isLogged === "true") {
-            // User is already logged in, redirect to dashboard
-            window.location.href = MAIN_DASHBOARD_URL;
-        }
-    }
-
-    // animated text typing effect for encouragement
-    const messages = ["📖 School builds the future.", "🧠 Study = Superpower.", "🌟 Every lesson matters.", "🚀 Dream, Learn, Achieve!"];
-    let msgIdx = 0;
-    function typeEffect() {
-        let fullText = messages[msgIdx];
-        let i = 0;
-        const el = document.getElementById('dynamicMessage');
-        function typeChar() {
-            if(i <= fullText.length) {
-                el.textContent = fullText.substring(0, i);
-                i++;
-                setTimeout(typeChar, 80);
-            } else {
-                setTimeout(() => {
-                    msgIdx = (msgIdx+1) % messages.length;
-                    typeEffect();
-                }, 2500);
+            } catch (error) {
+                showMessage("Connection error", "red");
             }
         }
-        typeChar();
-    }
-    
-    // Initialize everything
-    loadTrendingInteractions();
-    typeEffect();
-    checkExistingSession(); // This will auto-redirect if already logged in
-</script>
+
+        async function handleRegister() {
+            const user = document.getElementById('reg-user').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            if (!user || !pass) {
+                return showMessage("Please fill in all fields", "red");
+            }
+
+            showMessage("Registering...", "black");
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify({ action: "register", username: user, password: pass })
+                });
+
+                alert("Registration submitted! Try logging in now.");
+                toggleForms();
+            } catch (error) {
+                showMessage("Registration error", "red");
+            }
+        }
+
+        function toggleForms() {
+            document.getElementById('login-form').classList.toggle('hidden');
+            document.getElementById('register-form').classList.toggle('hidden');
+            document.getElementById('message').innerText = "";
+        }
+    </script>
 </body>
 </html>
