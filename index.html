@@ -5,32 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login & Register System</title>
     <style>
-        /* General Page Styling */
         body {
-            background-color: white;
-            color: black;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
+            background-color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: black;
         }
 
         .container {
-            text-align: center;
-            width: 320px;
+            width: 350px;
             padding: 30px;
-            border: 2px solid #eeeeee;
+            text-align: center;
+            border: 2px solid black;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            background-color: white;
         }
 
-        h2 {
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        h2 { margin-bottom: 20px; }
 
         input {
             width: 100%;
@@ -38,8 +34,7 @@
             margin: 10px 0;
             border: 1px solid black;
             border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 14px;
+            box-sizing: border-box; /* Ensures padding doesn't break width */
         }
 
         button {
@@ -53,30 +48,24 @@
             font-weight: bold;
             font-size: 16px;
             margin-top: 10px;
-            transition: background-color 0.3s;
         }
 
-        button:hover {
-            background-color: darkblue;
-        }
+        button:hover { background-color: #0000cd; }
 
         .toggle-link {
             margin-top: 20px;
             font-size: 0.85em;
             cursor: pointer;
-            color: blue;
             text-decoration: underline;
+            color: #333;
         }
 
-        .hidden {
-            display: none;
-        }
-
-        /* Status message styling */
+        .hidden { display: none; }
+        
         #message {
             margin-top: 15px;
-            font-size: 0.9em;
             font-weight: bold;
+            min-height: 20px;
         }
     </style>
 </head>
@@ -87,92 +76,82 @@
             <h2>Login</h2>
             <input type="text" id="login-user" placeholder="Username">
             <input type="password" id="login-pass" placeholder="Password">
-            <button onclick="handleLogin()">LOGIN</button>
-            <p class="toggle-link" onclick="toggleForms()">Don't have an account? Register</p>
+            <button onclick="submitData('login')">Login</button>
+            <p class="toggle-link" onclick="toggleForm('register-form', 'login-form')">Need an account? Register</p>
         </div>
 
         <div id="register-form" class="hidden">
             <h2>Register</h2>
             <input type="text" id="reg-user" placeholder="Username">
             <input type="password" id="reg-pass" placeholder="Password">
-            <button onclick="handleRegister()">REGISTER</button>
-            <p class="toggle-link" onclick="toggleForms()">Already registered? Login</p>
+            <button onclick="submitData('register')">Create Account</button>
+            <p class="toggle-link" onclick="toggleForm('login-form', 'register-form')">Have an account? Login</p>
         </div>
-
+        
         <div id="message"></div>
     </div>
 
     <script>
-        // Your specific Google Apps Script Web App URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxUTFWndFScFRaDv14vbkaVlN7DdEUyJPfozs9OFq_opc2ofJuiUhFBxshm9Dv5qnxGw/exec";
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbw6hXwKHz_uiVKW6vLRnFf5y8ex_OryExi6LQdbwzB1levGXskaEOWzhUHUfNiDyUic/exec';
 
-        function showMessage(text, color) {
-            const msgDiv = document.getElementById('message');
-            msgDiv.innerText = text;
-            msgDiv.style.color = color;
-        }
-
-        async function handleLogin() {
-            const user = document.getElementById('login-user').value;
-            const pass = document.getElementById('login-pass').value;
-
-            if (!user || !pass) {
-                return showMessage("Please fill in all fields", "red");
-            }
-
-            showMessage("Checking credentials...", "black");
-
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors", // Required for Google Scripts in some environments
-                    body: JSON.stringify({ action: "login", username: user, password: pass })
-                });
-
-                // Since "no-cors" doesn't allow reading the body, 
-                // we'll assume success if the browser doesn't throw an error, 
-                // OR ideally, use a standard Fetch if your Script permits CORS.
-                
-                // Note: For a real app, you'd use result = await response.text();
-                // But Google Apps Script CORS can be tricky.
-                
-                alert("Login request sent. If credentials are correct, check your redirect logic!");
-                window.location.href = "https://www.google.com"; 
-
-            } catch (error) {
-                showMessage("Connection error", "red");
-            }
-        }
-
-        async function handleRegister() {
-            const user = document.getElementById('reg-user').value;
-            const pass = document.getElementById('reg-pass').value;
-
-            if (!user || !pass) {
-                return showMessage("Please fill in all fields", "red");
-            }
-
-            showMessage("Registering...", "black");
-
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    body: JSON.stringify({ action: "register", username: user, password: pass })
-                });
-
-                alert("Registration submitted! Try logging in now.");
-                toggleForms();
-            } catch (error) {
-                showMessage("Registration error", "red");
-            }
-        }
-
-        function toggleForms() {
-            document.getElementById('login-form').classList.toggle('hidden');
-            document.getElementById('register-form').classList.toggle('hidden');
+        function toggleForm(showId, hideId) {
+            document.getElementById(showId).classList.remove('hidden');
+            document.getElementById(hideId).classList.add('hidden');
             document.getElementById('message').innerText = "";
         }
+
+        function submitData(action) {
+            const msgDiv = document.getElementById('message');
+            const user = action === 'login' ? document.getElementById('login-user').value : document.getElementById('reg-user').value;
+            const pass = action === 'login' ? document.getElementById('login-pass').value : document.getElementById('reg-pass').value;
+
+            if (!user || !pass) {
+                msgDiv.style.color = "red";
+                msgDiv.innerText = "Fields cannot be empty!";
+                return;
+            }
+
+            msgDiv.style.color = "blue";
+            msgDiv.innerText = "Processing...";
+
+            // Using Form Data to bypass some CORS restrictions with Google Apps Script
+            const formData = new FormData();
+            formData.append('action', action);
+            formData.append('username', user);
+            formData.append('password', pass);
+
+            fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: action, username: user, password: pass })
+            })
+            .then(res => res.text())
+            .then(response => {
+                if (response === "success") {
+                    msgDiv.style.color = "green";
+                    msgDiv.innerText = "Login Successful! Redirecting...";
+                    // REPLACE THE URL BELOW WITH YOUR MAIN PAGE
+                    setTimeout(() => { window.location.href = "https://www.google.com"; }, 1500);
+                } else if (response === "registered") {
+                    msgDiv.style.color = "green";
+                    msgDiv.innerText = "Registration complete! You can now login.";
+                    toggleForm('login-form', 'register-form');
+                } else if (response === "exists") {
+                    msgDiv.style.color = "red";
+                    msgDiv.innerText = "Username already taken.";
+                } else {
+                    msgDiv.style.color = "red";
+                    msgDiv.innerText = "Invalid Username or Password.";
+                }
+            })
+            .catch(error => {
+                // Because of how Google Apps Script handles CORS, sometimes the data 
+                // is sent successfully even if an 'error' is caught here.
+                msgDiv.style.color = "black";
+                msgDiv.innerText = "Check your Google Sheet to confirm!";
+                console.error('Error!', error.message);
+            });
+        }
     </script>
+
 </body>
 </html>
