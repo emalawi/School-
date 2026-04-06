@@ -3,83 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Login</title>
+    <title>School Portal - Login</title>
     <style>
-        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: white; font-family: 'Segoe UI', sans-serif; color: black; }
-        .container { width: 320px; padding: 30px; border: 2px solid black; border-radius: 12px; text-align: center; box-shadow: 5px 5px 0px black; }
-        h2 { text-transform: uppercase; letter-spacing: 1px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid black; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 12px; background-color: blue; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; transition: 0.2s; }
-        button:active { transform: scale(0.98); background-color: darkblue; }
-        .toggle { margin-top: 20px; font-size: 0.85em; cursor: pointer; text-decoration: underline; font-weight: bold; }
-        .hidden { display: none; }
-        #status { margin-top: 20px; font-weight: bold; min-height: 24px; transition: 0.3s; }
+        /* Centering and Theme */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: white;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: black;
+        }
+
+        .container {
+            width: 320px;
+            padding: 40px 20px;
+            text-align: center;
+            border: 2px solid black;
+            border-radius: 15px;
+            background-color: white;
+            box-shadow: 8px 8px 0px black; /* Bold, modern look */
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid black;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: blue;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 15px;
+            transition: 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #0000cc;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .toggle-text {
+            margin-top: 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            text-decoration: underline;
+            color: black;
+        }
+
+        #status-msg {
+            margin-top: 20px;
+            font-weight: bold;
+            min-height: 20px;
+            font-size: 0.9em;
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div id="login-box">
+        <div id="login-section">
             <h2>Login</h2>
-            <input type="text" id="l-user" placeholder="Username">
-            <input type="password" id="l-pass" placeholder="Password">
-            <button onclick="sendData('login')">LOGIN</button>
-            <p class="toggle" onclick="swap()">Need an account? Register</p>
+            <input type="text" id="login-user" placeholder="Username">
+            <input type="password" id="login-pass" placeholder="Password">
+            <button onclick="processData('login')">LOGIN</button>
+            <p class="toggle-text" onclick="toggleForm()">New user? Register here</p>
         </div>
 
-        <div id="reg-box" class="hidden">
+        <div id="register-section" class="hidden">
             <h2>Register</h2>
-            <input type="text" id="r-user" placeholder="Username">
-            <input type="password" id="r-pass" placeholder="Password">
-            <button onclick="sendData('register')">CREATE ACCOUNT</button>
-            <p class="toggle" onclick="swap()">Have an account? Login</p>
+            <input type="text" id="reg-user" placeholder="Username">
+            <input type="password" id="reg-pass" placeholder="Password">
+            <button onclick="processData('register')">CREATE ACCOUNT</button>
+            <p class="toggle-text" onclick="toggleForm()">Have an account? Login</p>
         </div>
 
-        <div id="status"></div>
+        <div id="status-msg"></div>
     </div>
 
     <script>
-        const URL = 'https://script.google.com/macros/s/AKfycbw6hXwKHz_uiVKW6vLRnFf5y8ex_OryExi6LQdbwzB1levGXskaEOWzhUHUfNiDyUic/exec';
-        const dashboardURL = 'https://emalawi.github.io/School-/Maindashboard';
+        // CONFIGURATION
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6hXwKHz_uiVKW6vLRnFf5y8ex_OryExi6LQdbwzB1levGXskaEOWzhUHUfNiDyUic/exec';
+        const DASHBOARD_URL = 'https://emalawi.github.io/School-/Maindashboard';
 
-        function swap() {
-            document.getElementById('login-box').classList.toggle('hidden');
-            document.getElementById('reg-box').classList.toggle('hidden');
-            document.getElementById('status').innerText = "";
+        // UI Toggle Logic
+        function toggleForm() {
+            document.getElementById('login-section').classList.toggle('hidden');
+            document.getElementById('register-section').classList.toggle('hidden');
+            document.getElementById('status-msg').innerText = "";
         }
 
-        function sendData(type) {
-            const user = type === 'login' ? document.getElementById('l-user').value : document.getElementById('r-user').value;
-            const pass = type === 'login' ? document.getElementById('l-pass').value : document.getElementById('r-pass').value;
-            const status = document.getElementById('status');
-
-            if(!user || !pass) { 
-                status.style.color = "red";
-                status.innerText = "Error: Fill all fields!"; 
-                return; 
-            }
+        // Data Processing Logic
+        function processData(mode) {
+            const userField = mode === 'login' ? 'login-user' : 'reg-user';
+            const passField = mode === 'login' ? 'login-pass' : 'reg-pass';
             
+            const username = document.getElementById(userField).value;
+            const password = document.getElementById(passField).value;
+            const status = document.getElementById('status-msg');
+
+            if (!username || !password) {
+                status.style.color = "red";
+                status.innerText = "Error: All fields required!";
+                return;
+            }
+
             status.style.color = "blue";
             status.innerText = "Processing... Please wait.";
 
-            fetch(URL, {
+            // Sending data to Google Sheets
+            fetch(SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', 
+                mode: 'no-cors', // Standard for Google Script Web Apps
                 cache: 'no-cache',
-                body: JSON.stringify({ action: type, username: user, password: pass })
-            }).then(() => {
-                // VISUAL FEEDBACK ON THE PAGE
+                body: JSON.stringify({
+                    action: mode,
+                    username: username,
+                    password: password
+                })
+            })
+            .then(() => {
+                // Visual feedback
                 status.style.color = "green";
-                status.innerText = (type === 'login' ? "Login Successful!" : "Registration Complete!") + " Redirecting...";
-                
-                // THE REDIRECT
-                setTimeout(() => {
-                    window.location.href = dashboardURL;
-                }, 1500); 
+                status.innerText = "Success! Entering Portal...";
 
-            }).catch(e => {
+                // FORCED REDIRECT TO YOUR DASHBOARD
+                setTimeout(() => {
+                    window.location.href = DASHBOARD_URL;
+                }, 1200);
+            })
+            .catch(err => {
                 status.style.color = "red";
-                status.innerText = "Connection error. Try again.";
+                status.innerText = "Connection failed. Try again.";
+                console.error(err);
             });
         }
     </script>
