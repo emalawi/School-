@@ -5,48 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Portal - Login</title>
     <style>
-        /* Centering and Theme */
+        /* Modern, Clean Centered Style */
         body {
             margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             background-color: white;
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: black;
         }
 
         .container {
-            width: 320px;
-            padding: 40px 20px;
-            text-align: center;
+            width: 330px;
+            padding: 30px;
             border: 2px solid black;
-            border-radius: 15px;
-            background-color: white;
-            box-shadow: 8px 8px 0px black; /* Bold, modern look */
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 6px 6px 0px black; /* Sharp modern shadow */
         }
 
-        h2 {
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
+        h2 { margin-bottom: 20px; text-transform: uppercase; }
 
         input {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
-            border: 2px solid black;
+            border: 1.5px solid black;
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 16px;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: blue;
         }
 
         button {
@@ -59,117 +48,102 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
-            margin-top: 15px;
-            transition: 0.2s ease;
+            margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #0000cc;
-            transform: translateY(-2px);
-        }
+        button:hover { background-color: darkblue; }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        .toggle-text {
+        .toggle-btn {
             margin-top: 20px;
-            font-size: 0.9em;
+            font-size: 0.85em;
             cursor: pointer;
             text-decoration: underline;
-            color: black;
         }
 
-        #status-msg {
-            margin-top: 20px;
+        .hidden { display: none; }
+
+        #status {
+            margin-top: 15px;
             font-weight: bold;
             min-height: 20px;
-            font-size: 0.9em;
-        }
-
-        .hidden {
-            display: none;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div id="login-section">
+        <div id="login-box">
             <h2>Login</h2>
-            <input type="text" id="login-user" placeholder="Username">
-            <input type="password" id="login-pass" placeholder="Password">
-            <button onclick="processData('login')">LOGIN</button>
-            <p class="toggle-text" onclick="toggleForm()">New user? Register here</p>
+            <input type="text" id="l-user" placeholder="Username">
+            <input type="password" id="l-pass" placeholder="Password">
+            <button onclick="handleRequest('login')">LOGIN</button>
+            <p class="toggle-btn" onclick="swap()">New user? Register here</p>
         </div>
 
-        <div id="register-section" class="hidden">
+        <div id="reg-box" class="hidden">
             <h2>Register</h2>
-            <input type="text" id="reg-user" placeholder="Username">
-            <input type="password" id="reg-pass" placeholder="Password">
-            <button onclick="processData('register')">CREATE ACCOUNT</button>
-            <p class="toggle-text" onclick="toggleForm()">Have an account? Login</p>
+            <input type="text" id="r-user" placeholder="Username">
+            <input type="password" id="r-pass" placeholder="Password">
+            <button onclick="handleRequest('register')">CREATE ACCOUNT</button>
+            <p class="toggle-btn" onclick="swap()">Back to Login</p>
         </div>
 
-        <div id="status-msg"></div>
+        <div id="status"></div>
     </div>
 
     <script>
-        // CONFIGURATION
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6hXwKHz_uiVKW6vLRnFf5y8ex_OryExi6LQdbwzB1levGXskaEOWzhUHUfNiDyUic/exec';
-        const DASHBOARD_URL = 'https://emalawi.github.io/School-/Maindashboard';
+        // YOUR LIVE URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCejYq3ony-GIhJ6iYtVZj3dhjLYUg_C56fNhBLZcuJ_fgfgMbGJGcjkIaHeaY_UMkpw/exec';
+        const DASHBOARD = 'https://emalawi.github.io/School-/Maindashboard';
 
-        // UI Toggle Logic
-        function toggleForm() {
-            document.getElementById('login-section').classList.toggle('hidden');
-            document.getElementById('register-section').classList.toggle('hidden');
-            document.getElementById('status-msg').innerText = "";
+        function swap() {
+            document.getElementById('login-box').classList.toggle('hidden');
+            document.getElementById('reg-box').classList.toggle('hidden');
+            document.getElementById('status').innerText = "";
         }
 
-        // Data Processing Logic
-        function processData(mode) {
-            const userField = mode === 'login' ? 'login-user' : 'reg-user';
-            const passField = mode === 'login' ? 'login-pass' : 'reg-pass';
-            
-            const username = document.getElementById(userField).value;
-            const password = document.getElementById(passField).value;
-            const status = document.getElementById('status-msg');
+        function handleRequest(mode) {
+            const u = document.getElementById(mode === 'login' ? 'l-user' : 'r-user').value;
+            const p = document.getElementById(mode === 'login' ? 'l-pass' : 'r-pass').value;
+            const status = document.getElementById('status');
 
-            if (!username || !password) {
+            if (!u || !p) {
                 status.style.color = "red";
-                status.innerText = "Error: All fields required!";
+                status.innerText = "Error: Fill all fields!";
                 return;
             }
 
             status.style.color = "blue";
-            status.innerText = "Processing... Please wait.";
+            status.innerText = "Verifying...";
 
-            // Sending data to Google Sheets
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Standard for Google Script Web Apps
-                cache: 'no-cache',
-                body: JSON.stringify({
-                    action: mode,
-                    username: username,
-                    password: password
-                })
-            })
-            .then(() => {
-                // Visual feedback
-                status.style.color = "green";
-                status.innerText = "Success! Entering Portal...";
+            // Create unique callback for this specific request
+            const callbackName = 'cb_' + Math.floor(Math.random() * 1000000);
+            
+            window[callbackName] = function(data) {
+                // Clean up the script tag and global function
+                delete window[callbackName];
+                
+                if (data.result === "success") {
+                    status.style.color = "green";
+                    status.innerText = "Success! Entering Dashboard...";
+                    setTimeout(() => { window.location.href = DASHBOARD; }, 1000);
+                } else if (data.result === "registered") {
+                    status.style.color = "green";
+                    status.innerText = "Account Created! Please Login.";
+                    swap();
+                } else if (data.result === "exists") {
+                    status.style.color = "red";
+                    status.innerText = "Username already taken!";
+                } else {
+                    status.style.color = "red";
+                    status.innerText = "Invalid Username or Password!";
+                }
+            };
 
-                // FORCED REDIRECT TO YOUR DASHBOARD
-                setTimeout(() => {
-                    window.location.href = DASHBOARD_URL;
-                }, 1200);
-            })
-            .catch(err => {
-                status.style.color = "red";
-                status.innerText = "Connection failed. Try again.";
-                console.error(err);
-            });
+            // Use Script Injection (JSONP) to bypass CORS
+            const script = document.createElement('script');
+            script.src = `${SCRIPT_URL}?action=${mode}&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&callback=${callbackName}`;
+            document.body.appendChild(script);
         }
     </script>
 </body>
