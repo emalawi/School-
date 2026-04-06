@@ -2,149 +2,156 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Portal - Login</title>
+    <title>Login & Register</title>
+
     <style>
-        /* Modern, Clean Centered Style */
         body {
-            margin: 0;
+            background-color: white;
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: black;
+            margin: 0;
         }
 
         .container {
-            width: 330px;
-            padding: 30px;
-            border: 2px solid black;
-            border-radius: 12px;
             text-align: center;
-            box-shadow: 6px 6px 0px black; /* Sharp modern shadow */
+            border: 1px solid #ddd;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
         }
 
-        h2 { margin-bottom: 20px; text-transform: uppercase; }
+        h2 {
+            color: black;
+        }
 
         input {
-            width: 100%;
-            padding: 12px;
+            width: 90%;
+            padding: 10px;
             margin: 10px 0;
-            border: 1.5px solid black;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
 
         button {
-            width: 100%;
-            padding: 12px;
+            width: 45%;
+            padding: 10px;
+            margin: 10px 5px;
             background-color: blue;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        #message {
             margin-top: 10px;
-        }
-
-        button:hover { background-color: darkblue; }
-
-        .toggle-btn {
-            margin-top: 20px;
-            font-size: 0.85em;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .hidden { display: none; }
-
-        #status {
-            margin-top: 15px;
             font-weight: bold;
-            min-height: 20px;
         }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <div id="login-box">
-            <h2>Login</h2>
-            <input type="text" id="l-user" placeholder="Username">
-            <input type="password" id="l-pass" placeholder="Password">
-            <button onclick="handleRequest('login')">LOGIN</button>
-            <p class="toggle-btn" onclick="swap()">New user? Register here</p>
-        </div>
+<div class="container">
+    <h2>Login / Register</h2>
 
-        <div id="reg-box" class="hidden">
-            <h2>Register</h2>
-            <input type="text" id="r-user" placeholder="Username">
-            <input type="password" id="r-pass" placeholder="Password">
-            <button onclick="handleRequest('register')">CREATE ACCOUNT</button>
-            <p class="toggle-btn" onclick="swap()">Back to Login</p>
-        </div>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
 
-        <div id="status"></div>
-    </div>
+    <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
 
-    <script>
-        // YOUR LIVE URL
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCejYq3ony-GIhJ6iYtVZj3dhjLYUg_C56fNhBLZcuJ_fgfgMbGJGcjkIaHeaY_UMkpw/exec';
-        const DASHBOARD = 'https://emalawi.github.io/School-/Maindashboard';
+    <div id="message"></div>
+</div>
 
-        function swap() {
-            document.getElementById('login-box').classList.toggle('hidden');
-            document.getElementById('reg-box').classList.toggle('hidden');
-            document.getElementById('status').innerText = "";
-        }
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbw7YsCEGVS7KXEiYI5YcXcAGMUFSdfPLolshoZM5Ix_w-8A_HmpUYMs0IPm5s69_E5W/exec";
+const DASHBOARD_URL = "https://emalawi.github.io/School-/Maindashboard";
 
-        function handleRequest(mode) {
-            const u = document.getElementById(mode === 'login' ? 'l-user' : 'r-user').value;
-            const p = document.getElementById(mode === 'login' ? 'l-pass' : 'r-pass').value;
-            const status = document.getElementById('status');
+// LOGIN
+async function login() {
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
 
-            if (!u || !p) {
-                status.style.color = "red";
-                status.innerText = "Error: Fill all fields!";
-                return;
-            }
+    if (!username || !password) {
+        showMessage("Fill all fields!", "red");
+        return;
+    }
 
-            status.style.color = "blue";
-            status.innerText = "Verifying...";
+    let response = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            action: "login",
+            username: username,
+            password: password
+        })
+    });
 
-            // Create unique callback for this specific request
-            const callbackName = 'cb_' + Math.floor(Math.random() * 1000000);
-            
-            window[callbackName] = function(data) {
-                // Clean up the script tag and global function
-                delete window[callbackName];
-                
-                if (data.result === "success") {
-                    status.style.color = "green";
-                    status.innerText = "Success! Entering Dashboard...";
-                    setTimeout(() => { window.location.href = DASHBOARD; }, 1000);
-                } else if (data.result === "registered") {
-                    status.style.color = "green";
-                    status.innerText = "Account Created! Please Login.";
-                    swap();
-                } else if (data.result === "exists") {
-                    status.style.color = "red";
-                    status.innerText = "Username already taken!";
-                } else {
-                    status.style.color = "red";
-                    status.innerText = "Invalid Username or Password!";
-                }
-            };
+    let result = await response.text();
 
-            // Use Script Injection (JSONP) to bypass CORS
-            const script = document.createElement('script');
-            script.src = `${SCRIPT_URL}?action=${mode}&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}&callback=${callbackName}`;
-            document.body.appendChild(script);
-        }
-    </script>
+    if (result === "success") {
+        showMessage("Login successful!", "green");
+
+        localStorage.setItem("user", username);
+
+        setTimeout(() => {
+            window.location.href = DASHBOARD_URL;
+        }, 800);
+
+    } else {
+        showMessage("Invalid credentials!", "red");
+    }
+}
+
+// REGISTER
+async function register() {
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+
+    if (!username || !password) {
+        showMessage("Fill all fields!", "red");
+        return;
+    }
+
+    let response = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            action: "register",
+            username: username,
+            password: password
+        })
+    });
+
+    let result = await response.text();
+
+    if (result === "registered") {
+        showMessage("Registered successfully!", "green");
+
+        localStorage.setItem("user", username);
+
+        setTimeout(() => {
+            window.location.href = DASHBOARD_URL;
+        }, 800);
+
+    } else if (result === "exists") {
+        showMessage("Username already exists!", "red");
+    }
+}
+
+// MESSAGE
+function showMessage(msg, color) {
+    let message = document.getElementById("message");
+    message.style.color = color;
+    message.innerText = msg;
+}
+</script>
+
 </body>
 </html>
