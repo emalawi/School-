@@ -3,155 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login & Register System</title>
+    <title>School Login</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: black;
-        }
-
-        .container {
-            width: 350px;
-            padding: 30px;
-            text-align: center;
-            border: 2px solid black;
-            border-radius: 12px;
-            background-color: white;
-        }
-
-        h2 { margin-bottom: 20px; }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid black;
-            border-radius: 4px;
-            box-sizing: border-box; /* Ensures padding doesn't break width */
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: blue;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        button:hover { background-color: #0000cd; }
-
-        .toggle-link {
-            margin-top: 20px;
-            font-size: 0.85em;
-            cursor: pointer;
-            text-decoration: underline;
-            color: #333;
-        }
-
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: white; font-family: 'Segoe UI', sans-serif; color: black; }
+        .container { width: 320px; padding: 30px; border: 2px solid black; border-radius: 12px; text-align: center; box-shadow: 5px 5px 0px black; }
+        h2 { text-transform: uppercase; letter-spacing: 1px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid black; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; background-color: blue; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; transition: 0.2s; }
+        button:active { transform: scale(0.98); background-color: darkblue; }
+        .toggle { margin-top: 20px; font-size: 0.85em; cursor: pointer; text-decoration: underline; font-weight: bold; }
         .hidden { display: none; }
-        
-        #message {
-            margin-top: 15px;
-            font-weight: bold;
-            min-height: 20px;
-        }
+        #status { margin-top: 20px; font-weight: bold; min-height: 24px; transition: 0.3s; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div id="login-form">
+        <div id="login-box">
             <h2>Login</h2>
-            <input type="text" id="login-user" placeholder="Username">
-            <input type="password" id="login-pass" placeholder="Password">
-            <button onclick="submitData('login')">Login</button>
-            <p class="toggle-link" onclick="toggleForm('register-form', 'login-form')">Need an account? Register</p>
+            <input type="text" id="l-user" placeholder="Username">
+            <input type="password" id="l-pass" placeholder="Password">
+            <button onclick="sendData('login')">LOGIN</button>
+            <p class="toggle" onclick="swap()">Need an account? Register</p>
         </div>
 
-        <div id="register-form" class="hidden">
+        <div id="reg-box" class="hidden">
             <h2>Register</h2>
-            <input type="text" id="reg-user" placeholder="Username">
-            <input type="password" id="reg-pass" placeholder="Password">
-            <button onclick="submitData('register')">Create Account</button>
-            <p class="toggle-link" onclick="toggleForm('login-form', 'register-form')">Have an account? Login</p>
+            <input type="text" id="r-user" placeholder="Username">
+            <input type="password" id="r-pass" placeholder="Password">
+            <button onclick="sendData('register')">CREATE ACCOUNT</button>
+            <p class="toggle" onclick="swap()">Have an account? Login</p>
         </div>
-        
-        <div id="message"></div>
+
+        <div id="status"></div>
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbw6hXwKHz_uiVKW6vLRnFf5y8ex_OryExi6LQdbwzB1levGXskaEOWzhUHUfNiDyUic/exec';
+        const URL = 'https://script.google.com/macros/s/AKfycbw6hXwKHz_uiVKW6vLRnFf5y8ex_OryExi6LQdbwzB1levGXskaEOWzhUHUfNiDyUic/exec';
+        const dashboardURL = 'https://emalawi.github.io/School-/Maindashboard';
 
-        function toggleForm(showId, hideId) {
-            document.getElementById(showId).classList.remove('hidden');
-            document.getElementById(hideId).classList.add('hidden');
-            document.getElementById('message').innerText = "";
+        function swap() {
+            document.getElementById('login-box').classList.toggle('hidden');
+            document.getElementById('reg-box').classList.toggle('hidden');
+            document.getElementById('status').innerText = "";
         }
 
-        function submitData(action) {
-            const msgDiv = document.getElementById('message');
-            const user = action === 'login' ? document.getElementById('login-user').value : document.getElementById('reg-user').value;
-            const pass = action === 'login' ? document.getElementById('login-pass').value : document.getElementById('reg-pass').value;
+        function sendData(type) {
+            const user = type === 'login' ? document.getElementById('l-user').value : document.getElementById('r-user').value;
+            const pass = type === 'login' ? document.getElementById('l-pass').value : document.getElementById('r-pass').value;
+            const status = document.getElementById('status');
 
-            if (!user || !pass) {
-                msgDiv.style.color = "red";
-                msgDiv.innerText = "Fields cannot be empty!";
-                return;
+            if(!user || !pass) { 
+                status.style.color = "red";
+                status.innerText = "Error: Fill all fields!"; 
+                return; 
             }
+            
+            status.style.color = "blue";
+            status.innerText = "Processing... Please wait.";
 
-            msgDiv.style.color = "blue";
-            msgDiv.innerText = "Processing...";
-
-            // Using Form Data to bypass some CORS restrictions with Google Apps Script
-            const formData = new FormData();
-            formData.append('action', action);
-            formData.append('username', user);
-            formData.append('password', pass);
-
-            fetch(scriptURL, {
+            fetch(URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: action, username: user, password: pass })
-            })
-            .then(res => res.text())
-            .then(response => {
-                if (response === "success") {
-                    msgDiv.style.color = "green";
-                    msgDiv.innerText = "Login Successful! Redirecting...";
-                    // REPLACE THE URL BELOW WITH YOUR MAIN PAGE
-                    setTimeout(() => { window.location.href = "https://www.google.com"; }, 1500);
-                } else if (response === "registered") {
-                    msgDiv.style.color = "green";
-                    msgDiv.innerText = "Registration complete! You can now login.";
-                    toggleForm('login-form', 'register-form');
-                } else if (response === "exists") {
-                    msgDiv.style.color = "red";
-                    msgDiv.innerText = "Username already taken.";
-                } else {
-                    msgDiv.style.color = "red";
-                    msgDiv.innerText = "Invalid Username or Password.";
-                }
-            })
-            .catch(error => {
-                // Because of how Google Apps Script handles CORS, sometimes the data 
-                // is sent successfully even if an 'error' is caught here.
-                msgDiv.style.color = "black";
-                msgDiv.innerText = "Check your Google Sheet to confirm!";
-                console.error('Error!', error.message);
+                mode: 'no-cors', 
+                cache: 'no-cache',
+                body: JSON.stringify({ action: type, username: user, password: pass })
+            }).then(() => {
+                // VISUAL FEEDBACK ON THE PAGE
+                status.style.color = "green";
+                status.innerText = (type === 'login' ? "Login Successful!" : "Registration Complete!") + " Redirecting...";
+                
+                // THE REDIRECT
+                setTimeout(() => {
+                    window.location.href = dashboardURL;
+                }, 1500); 
+
+            }).catch(e => {
+                status.style.color = "red";
+                status.innerText = "Connection error. Try again.";
             });
         }
     </script>
-
 </body>
 </html>
